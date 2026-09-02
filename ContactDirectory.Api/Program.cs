@@ -29,6 +29,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
+builder.Services.AddAuthorization();
+
 // 3. CORS (Cross-Origin Resource Sharing) Ayarı
 builder.Services.AddCors(options =>
 {

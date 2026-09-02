@@ -35,3 +35,41 @@ export const authGuard: CanActivateFn = () => {
 
   return true;
 };
+
+/**
+ * AdminGuard — Sadece 'Admin' rolündeki kullanıcıların erişimine izin verir.
+ * Admin değilse ana sayfaya (/contacts) yönlendirir.
+ */
+export const adminGuard: CanActivateFn = () => {
+  const router = inject(Router);
+  const token = localStorage.getItem('token');
+
+  if (!token) {
+    router.navigate(['/login']);
+    return false;
+  }
+
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    const expiry = payload.exp * 1000;
+    if (Date.now() >= expiry) {
+      localStorage.removeItem('token');
+      router.navigate(['/login']);
+      return false;
+    }
+
+    const role = localStorage.getItem('current_user_role') ||
+                 payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] ||
+                 payload.role;
+
+    if (role?.toLowerCase() !== 'admin') {
+      router.navigate(['/contacts']);
+      return false;
+    }
+
+    return true;
+  } catch {
+    router.navigate(['/login']);
+    return false;
+  }
+};

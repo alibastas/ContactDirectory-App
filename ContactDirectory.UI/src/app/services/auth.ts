@@ -21,6 +21,7 @@ import { LoginRequest, LoginResponse, RegisterRequest, RegisterResponse } from '
 const STORAGE_KEYS = {
   TOKEN: 'token',
   USERNAME: 'current_username',
+  ROLE: 'current_user_role',
 } as const;
 
 @Injectable({
@@ -36,13 +37,24 @@ export class AuthService {
     return this.http.post<RegisterResponse>(`${this.apiUrl}/register`, request);
   }
 
-  /** Kullanıcı girişi — başarılıysa token ve username saklanır */
+  /** Kullanıcı girişi — başarılıysa token, username ve role saklanır */
   login(request: LoginRequest): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(`${this.apiUrl}/login`, request).pipe(
       tap(response => {
         if (response?.token) {
           localStorage.setItem(STORAGE_KEYS.TOKEN, response.token);
           localStorage.setItem(STORAGE_KEYS.USERNAME, request.username);
+          
+          let role = response.role;
+          if (!role) {
+            try {
+              const payload = JSON.parse(atob(response.token.split('.')[1]));
+              role = payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] || payload.role || 'User';
+            } catch {
+              role = 'User';
+            }
+          }
+          localStorage.setItem(STORAGE_KEYS.ROLE, role);
         }
       })
     );
@@ -52,6 +64,7 @@ export class AuthService {
   logout(): void {
     localStorage.removeItem(STORAGE_KEYS.TOKEN);
     localStorage.removeItem(STORAGE_KEYS.USERNAME);
+    localStorage.removeItem(STORAGE_KEYS.ROLE);
   }
 
   /** Kullanıcının aktif bir oturumu var mı? */
@@ -76,5 +89,15 @@ export class AuthService {
   /** Giriş yapan kullanıcının adını döndür */
   getUsername(): string {
     return localStorage.getItem(STORAGE_KEYS.USERNAME) || 'Bilinmeyen Kullanıcı';
+  }
+
+  /** Giriş yapan kullanıcının rolünü döndür (Admin / User) */
+  getRole(): string {
+    return localStorage.getItem(STORAGE_KEYS.ROLE) || 'User';
+  }
+
+  /** Kullanıcı admin mi? */
+  isAdmin(): boolean {
+    return this.getRole().toLowerCase() === 'admin';
   }
 }

@@ -14,6 +14,7 @@ export interface LoginRequest {
 /** Login başarılı olduğunda backend'den dönen yanıt */
 export interface LoginResponse {
   token: string;
+  role: string;
 }
 
 /** Kayıt isteği için gönderilen veri */

@@ -36,6 +36,6 @@ public class AuthController : ControllerBase
             return BadRequest(result.Message);
         }
 
-        return Ok(new { token = result.Token });
+        return Ok(new { token = result.Token, role = result.Role });
     }
 }

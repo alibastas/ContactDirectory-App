@@ -34,7 +34,8 @@ public class AuthService : IAuthService
         var user = new User
         {
             Username = request.Username,
-            PasswordHash = passwordHash
+            PasswordHash = passwordHash,
+            Role = "User" // Yeni kayıtlar varsayılan olarak "User" rolünde
         };
 
         _context.Users.Add(user);
@@ -43,16 +44,16 @@ public class AuthService : IAuthService
         return (true, "Kayıt başarılı!");
     }
 
-    public async Task<(bool IsSuccess, string Token, string Message)> LoginAsync(UserLoginDto request)
+    public async Task<(bool IsSuccess, string Token, string Role, string Message)> LoginAsync(UserLoginDto request)
     {
         var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == request.Username);
         if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
         {
-            return (false, string.Empty, "Kullanıcı adı veya şifre hatalı.");
+            return (false, string.Empty, string.Empty, "Kullanıcı adı veya şifre hatalı.");
         }
 
         string token = CreateToken(user);
-        return (true, token, "Giriş başarılı.");
+        return (true, token, user.Role, "Giriş başarılı.");
     }
 
     private string CreateToken(User user)
@@ -64,7 +65,8 @@ public class AuthService : IAuthService
         var claims = new[]
         {
             new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-            new Claim(ClaimTypes.Name, user.Username)
+            new Claim(ClaimTypes.Name, user.Username),
+            new Claim(ClaimTypes.Role, user.Role)
         };
 
         var token = new JwtSecurityToken(
