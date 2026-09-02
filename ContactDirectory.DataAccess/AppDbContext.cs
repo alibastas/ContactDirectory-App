@@ -10,5 +10,6 @@ public class AppDbContext : DbContext
     }
 
     public DbSet<Contact> Contacts { get; set; }
-    public DbSet<User> Users { get; set; } // Yeni eklediğimiz kullanıcı tablosu
+    public DbSet<User> Users { get; set; }
+    public DbSet<AuditLog> AuditLogs { get; set; }
 }

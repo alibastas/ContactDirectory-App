@@ -9,10 +9,12 @@ namespace ContactDirectory.Api.Services;
 public class ContactService : IContactService
 {
     private readonly AppDbContext _context;
+    private readonly IAuditLogService _auditLogService;
 
-    public ContactService(AppDbContext context)
+    public ContactService(AppDbContext context, IAuditLogService auditLogService)
     {
         _context = context;
+        _auditLogService = auditLogService;
     }
 
     public async Task<PagedResult<ContactResponseDto>> GetContactsAsync(int userId, string? searchTerm, bool isFavoriteOnly, int page, int pageSize)
@@ -106,6 +108,16 @@ public class ContactService : IContactService
         _context.Contacts.Add(contact);
         await _context.SaveChangesAsync();
 
+        var username = await GetUsernameAsync(userId);
+        await _auditLogService.LogAsync(
+            userId,
+            username,
+            "CREATE",
+            "Contact",
+            contact.Id,
+            $"Yeni kişi eklendi: {contact.FirstName} {contact.LastName} ({contact.PhoneNumber})"
+        );
+
         return new ContactResponseDto
         {
             Id = contact.Id,
@@ -134,6 +146,17 @@ public class ContactService : IContactService
         existing.IsFavorite = dto.IsFavorite;
 
         await _context.SaveChangesAsync();
+
+        var username = await GetUsernameAsync(userId);
+        await _auditLogService.LogAsync(
+            userId,
+            username,
+            "UPDATE",
+            "Contact",
+            existing.Id,
+            $"Kişi güncellendi: {existing.FirstName} {existing.LastName}"
+        );
+
         return true;
     }
 
@@ -147,9 +170,31 @@ public class ContactService : IContactService
             return false;
         }
 
+        var fullName = $"{contact.FirstName} {contact.LastName}";
+        var contactId = contact.Id;
+
         _context.Contacts.Remove(contact);
         await _context.SaveChangesAsync();
+
+        var username = await GetUsernameAsync(userId);
+        await _auditLogService.LogAsync(
+            userId,
+            username,
+            "DELETE",
+            "Contact",
+            contactId,
+            $"Kişi silindi: {fullName}"
+        );
+
         return true;
+    }
+
+    private async Task<string> GetUsernameAsync(int userId)
+    {
+        return await _context.Users
+            .Where(u => u.Id == userId)
+            .Select(u => u.Username)
+            .FirstOrDefaultAsync() ?? $"User#{userId}";
     }
 
     public async Task<ContactStatsDto> GetContactStatsAsync(int userId)

@@ -52,6 +52,7 @@ builder.Services.AddControllers()
 // Dependency Injection (Service Layer)
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IContactService, ContactService>();
+builder.Services.AddScoped<IAuditLogService, AuditLogService>();
 
 // 4. Swagger Ayarları
 builder.Services.AddEndpointsApiExplorer();
