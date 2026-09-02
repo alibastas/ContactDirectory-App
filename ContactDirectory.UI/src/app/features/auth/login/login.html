@@ -1,0 +1,90 @@
+<div class="login-page">
+  <!-- Animated background orbs -->
+  <div class="bg-orb bg-orb-1"></div>
+  <div class="bg-orb bg-orb-2"></div>
+  <div class="bg-orb bg-orb-3"></div>
+
+  <div class="login-card" [class.shake]="shakeCard()">
+    <!-- Logo / Brand -->
+    <div class="brand">
+      <div class="brand-icon">
+        <i class="pi pi-address-book"></i>
+      </div>
+      <h1>Kişi Rehberi</h1>
+      <p class="brand-subtitle">{{ isRegisterMode() ? 'Yeni hesap oluşturun' : 'Hesabınıza giriş yapın' }}</p>
+    </div>
+
+    <!-- Toast Messages -->
+    <div class="toast toast-error" *ngIf="errorMessage()">
+      <i class="pi pi-times-circle"></i>
+      <span>{{ errorMessage() }}</span>
+    </div>
+    <div class="toast toast-success" *ngIf="successMessage()">
+      <i class="pi pi-check-circle"></i>
+      <span>{{ successMessage() }}</span>
+    </div>
+
+    <!-- Form -->
+    <form (ngSubmit)="onSubmit()" class="login-form">
+      <div class="input-group">
+        <div class="input-icon">
+          <i class="pi pi-user"></i>
+        </div>
+        <input
+          type="text"
+          id="login-username"
+          [ngModel]="username()"
+          (ngModelChange)="username.set($event)"
+          name="username"
+          required
+          placeholder="Kullanıcı adı"
+          autocomplete="username"
+        />
+      </div>
+
+      <div class="input-group">
+        <div class="input-icon">
+          <i class="pi pi-lock"></i>
+        </div>
+        <input
+          [type]="showPassword() ? 'text' : 'password'"
+          id="login-password"
+          [ngModel]="password()"
+          (ngModelChange)="password.set($event)"
+          name="password"
+          required
+          placeholder="Şifre"
+          autocomplete="current-password"
+        />
+        <button type="button" class="toggle-password" (click)="togglePassword()" tabindex="-1">
+          <i class="pi" [ngClass]="showPassword() ? 'pi-eye-slash' : 'pi-eye'"></i>
+        </button>
+      </div>
+
+      <button type="submit" class="btn-submit" [disabled]="isSubmitting()">
+        <span *ngIf="!isSubmitting()">
+          <i class="pi" [ngClass]="isRegisterMode() ? 'pi-user-plus' : 'pi-sign-in'" style="margin-right: 8px;"></i>
+          {{ isRegisterMode() ? 'Kayıt Ol' : 'Giriş Yap' }}
+        </span>
+        <span *ngIf="isSubmitting()" class="loading-spinner">
+          <i class="pi pi-spin pi-spinner"></i>
+          İşleniyor...
+        </span>
+      </button>
+    </form>
+
+    <!-- Divider -->
+    <div class="divider">
+      <span>veya</span>
+    </div>
+
+    <!-- Toggle Mode -->
+    <button class="btn-toggle" (click)="toggleMode()">
+      <i class="pi" [ngClass]="isRegisterMode() ? 'pi-sign-in' : 'pi-user-plus'" style="margin-right: 6px;"></i>
+      {{ isRegisterMode() ? 'Zaten hesabın var mı? Giriş yap' : 'Hesabın yok mu? Kayıt ol' }}
+    </button>
+  </div>
+
+  <!-- Footer -->
+  <p class="login-footer">© 2026 Kişi Rehberi — Tüm Hakları Saklıdır.</p>
+</div>

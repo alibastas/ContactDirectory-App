@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="ContactDirectory.Api/ContactDirectory.Api.csproj" />
+  <Project Path="ContactDirectory.Core/ContactDirectory.Core.csproj" />
+  <Project Path="ContactDirectory.DataAccess/ContactDirectory.DataAccess.csproj" />
+</Solution>
