@@ -56,4 +56,18 @@ export class ContactService {
   getContactStats(): Observable<{ totalContacts: number, favoriteContacts: number }> {
     return this.http.get<{ totalContacts: number, favoriteContacts: number }>(`${this.apiUrl}/stats`);
   }
+
+  /** Filtreye uyan tüm kişileri dışa aktarım için getir (Sayfalamasız) */
+  getExportContacts(searchTerm: string = '', isFavoriteOnly: boolean = false): Observable<Contact[]> {
+    let params = new HttpParams().set('isFavoriteOnly', isFavoriteOnly.toString());
+    if (searchTerm) {
+      params = params.set('searchTerm', searchTerm);
+    }
+    return this.http.get<Contact[]>(`${this.apiUrl}/export-data`, { params });
+  }
+
+  /** Excel veya toplu veri ile birden fazla kişiyi tek istekte ekle */
+  bulkAddContacts(contacts: Partial<Contact>[]): Observable<{ count: number, message: string }> {
+    return this.http.post<{ count: number, message: string }>(`${this.apiUrl}/bulk`, contacts);
+  }
 }

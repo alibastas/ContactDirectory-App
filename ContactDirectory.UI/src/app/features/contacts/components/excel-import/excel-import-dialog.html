@@ -1,0 +1,135 @@
+<p-dialog 
+  [header]="dialogTitle" 
+  [visible]="visible" 
+  (visibleChange)="onVisibleChange($event)" 
+  [modal]="true" 
+  [style]="{ width: '680px', maxWidth: '95vw' }"
+  [draggable]="false" 
+  [resizable]="false" 
+  styleClass="excel-import-dialog">
+
+  <div class="excel-dialog-content">
+    <!-- Intro Header & Sample Template Download -->
+    <div class="dialog-intro">
+      <div class="intro-text">
+        <h3>
+          <i [class]="headerIcon"></i>
+          {{ introTitle }}
+        </h3>
+        <p>{{ introDescription }}</p>
+      </div>
+      <button class="btn-sample-template" (click)="downloadTemplate()" type="button" [title]="templateBtnLabel">
+        <i class="pi pi-download"></i>
+        <span>{{ templateBtnLabel }}</span>
+      </button>
+    </div>
+
+    <!-- Dropzone when no file selected -->
+    <div 
+      *ngIf="!selectedFile()" 
+      class="dropzone" 
+      [class.dragover]="isDragOver()"
+      (dragover)="onDragOver($event)"
+      (dragleave)="onDragLeave($event)"
+      (drop)="onDrop($event)"
+      (click)="fileInput.click()">
+      <input 
+        #fileInput 
+        type="file" 
+        [accept]="acceptedExtensions" 
+        style="display: none;" 
+        (change)="onFileSelected($event)" />
+      
+      <div class="dropzone-icon">
+        <i class="pi pi-upload"></i>
+      </div>
+      <span class="dropzone-title">{{ dropzoneTitle }}</span>
+      <span class="dropzone-hint">{{ dropzoneHint }}</span>
+    </div>
+
+    <!-- Error message if any -->
+    <div class="toast toast-error" *ngIf="errorMessage()" style="margin: 0;">
+      <i class="pi pi-exclamation-circle"></i>
+      <span>{{ errorMessage() }}</span>
+    </div>
+
+    <!-- Selected File & Parsing State -->
+    <div *ngIf="selectedFile()" class="selected-file-card">
+      <div class="file-info">
+        <i [class]="headerIcon"></i>
+        <div>
+          <span class="file-name">{{ selectedFile()?.name }}</span>
+          <span class="file-size">({{ formatFileSize(selectedFile()?.size || 0) }})</span>
+        </div>
+      </div>
+      <button class="btn-remove-file" (click)="removeFile()" type="button" title="Dosyayı Kaldır">
+        <i class="pi pi-times"></i>
+      </button>
+    </div>
+
+    <!-- Parsing Loading Spinner -->
+    <div *ngIf="isParsing()" class="loading-box" style="padding: 1.5rem;">
+      <i class="pi pi-spin pi-spinner"></i>
+      <span>{{ parsingText }}</span>
+    </div>
+
+    <!-- Parse Results: Summary Badges & Preview Table -->
+    <div *ngIf="parseResult() && !isParsing()">
+      <!-- Summary Badges -->
+      <div class="summary-badges-row" style="margin-bottom: 0.85rem;">
+        <span class="summary-badge badge-valid">
+          <i class="pi pi-check-circle"></i>
+          {{ parseResult()?.validContacts?.length || 0 }} Geçerli Kişi
+        </span>
+        <span class="summary-badge badge-invalid" *ngIf="(parseResult()?.invalidContacts?.length || 0) > 0">
+          <i class="pi pi-exclamation-triangle"></i>
+          {{ parseResult()?.invalidContacts?.length }} Hatalı/Eksik Satır
+        </span>
+        <span class="summary-badge badge-total">
+          Toplam {{ parseResult()?.totalRows || 0 }} Satır
+        </span>
+      </div>
+
+      <!-- Preview Table -->
+      <div class="preview-container" *ngIf="(parseResult()?.validContacts?.length || 0) > 0">
+        <table class="preview-table">
+          <thead>
+            <tr>
+              <th>Ad</th>
+              <th>Soyad</th>
+              <th>Telefon</th>
+              <th>E-posta</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let c of parseResult()?.validContacts?.slice(0, 50)">
+              <td><strong>{{ c.firstName }}</strong></td>
+              <td>{{ c.lastName || '-' }}</td>
+              <td>{{ c.phoneNumber }}</td>
+              <td>{{ c.email || '-' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <small *ngIf="(parseResult()?.validContacts?.length || 0) > 50" style="color: var(--text-muted); display: block; margin-top: 0.4rem;">
+        * İlk 50 kayıt önizlemede gösteriliyor (Toplam {{ parseResult()?.validContacts?.length }} kişi aktarılacak).
+      </small>
+    </div>
+
+    <!-- Dialog Footer Actions -->
+    <div class="dialog-footer">
+      <button class="btn-cancel" (click)="onVisibleChange(false)" type="button">
+        Vazgeç
+      </button>
+      <button 
+        class="btn-confirm-import" 
+        [disabled]="!parseResult() || (parseResult()?.validContacts?.length || 0) === 0 || isUploading()"
+        (click)="confirmImport()" 
+        type="button">
+        <i class="pi pi-spin pi-spinner" *ngIf="isUploading()"></i>
+        <i class="pi pi-check" *ngIf="!isUploading()"></i>
+        <span>Rehbere Aktar ({{ parseResult()?.validContacts?.length || 0 }} Kişi)</span>
+      </button>
+    </div>
+  </div>
+</p-dialog>

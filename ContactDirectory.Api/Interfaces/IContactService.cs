@@ -11,4 +11,7 @@ public interface IContactService
     Task<bool> UpdateContactAsync(int id, ContactUpdateDto dto, int userId);
     Task<bool> DeleteContactAsync(int id, int userId);
     Task<ContactStatsDto> GetContactStatsAsync(int userId);
+    Task<List<ContactResponseDto>> GetFilteredContactsForExportAsync(int userId, string? searchTerm, bool isFavoriteOnly);
+    Task<int> BulkCreateContactsAsync(int userId, List<ContactCreateDto> contacts);
 }
+

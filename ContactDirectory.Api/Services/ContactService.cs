@@ -208,4 +208,81 @@ public class ContactService : IContactService
             FavoriteContacts = favoriteContacts
         };
     }
+
+    public async Task<List<ContactResponseDto>> GetFilteredContactsForExportAsync(int userId, string? searchTerm, bool isFavoriteOnly)
+    {
+        var query = _context.Contacts
+            .Where(c => c.UserId == userId)
+            .AsQueryable();
+
+        if (isFavoriteOnly)
+        {
+            query = query.Where(c => c.IsFavorite);
+        }
+
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            var tokens = searchTerm.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            foreach (var token in tokens)
+            {
+                var pattern = $"%{token.ToLowerInvariant()}%";
+                query = query.Where(c =>
+                    EF.Functions.Like(
+                        EF.Functions.Collate(c.FirstName ?? "", "tr-TR-x-icu").ToLower(), pattern) ||
+                    EF.Functions.Like(
+                        EF.Functions.Collate(c.LastName ?? "", "tr-TR-x-icu").ToLower(), pattern) ||
+                    EF.Functions.Like(
+                        EF.Functions.Collate(c.PhoneNumber ?? "", "tr-TR-x-icu").ToLower(), pattern) ||
+                    EF.Functions.Like(
+                        EF.Functions.Collate(c.Email ?? "", "tr-TR-x-icu").ToLower(), pattern));
+            }
+        }
+
+        return await query
+            .OrderBy(c => EF.Functions.Collate(c.FirstName ?? "", "tr-TR-x-icu"))
+            .Select(c => new ContactResponseDto
+            {
+                Id = c.Id,
+                FirstName = c.FirstName,
+                LastName = c.LastName,
+                PhoneNumber = c.PhoneNumber,
+                Email = c.Email,
+                IsFavorite = c.IsFavorite
+            })
+            .ToListAsync();
+    }
+
+    public async Task<int> BulkCreateContactsAsync(int userId, List<ContactCreateDto> contacts)
+    {
+        if (contacts == null || contacts.Count == 0)
+        {
+            return 0;
+        }
+
+        var entities = contacts.Select(dto => new Contact
+        {
+            FirstName = dto.FirstName?.Trim() ?? string.Empty,
+            LastName = dto.LastName?.Trim() ?? string.Empty,
+            PhoneNumber = dto.PhoneNumber?.Trim() ?? string.Empty,
+            Email = string.IsNullOrWhiteSpace(dto.Email) ? null : dto.Email.Trim(),
+            IsFavorite = dto.IsFavorite,
+            UserId = userId
+        }).ToList();
+
+        await _context.Contacts.AddRangeAsync(entities);
+        await _context.SaveChangesAsync();
+
+        var username = await GetUsernameAsync(userId);
+        await _auditLogService.LogAsync(
+            userId,
+            username,
+            "CREATE",
+            "Contact",
+            null,
+            $"Excel ile toplu kayıt: {entities.Count} kişi rehbere aktarıldı."
+        );
+
+        return entities.Count;
+    }
 }
+

@@ -89,6 +89,29 @@ public class ContactsController : ControllerBase
         return NoContent();
     }
 
+    [HttpGet("export-data")]
+    public async Task<ActionResult<List<ContactResponseDto>>> GetExportData(
+        [FromQuery] string? searchTerm = null,
+        [FromQuery] bool isFavoriteOnly = false)
+    {
+        int userId = GetCurrentUserId();
+        var data = await _contactService.GetFilteredContactsForExportAsync(userId, searchTerm, isFavoriteOnly);
+        return Ok(data);
+    }
+
+    [HttpPost("bulk")]
+    public async Task<IActionResult> BulkCreateContacts([FromBody] List<ContactCreateDto> contacts)
+    {
+        if (contacts == null || contacts.Count == 0)
+        {
+            return BadRequest("Eklenecek kişi listesi boş olamaz.");
+        }
+
+        int userId = GetCurrentUserId();
+        var addedCount = await _contactService.BulkCreateContactsAsync(userId, contacts);
+        return Ok(new { count = addedCount, message = $"{addedCount} kişi başarıyla rehbere aktarıldı." });
+    }
+
     private int GetCurrentUserId()
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;

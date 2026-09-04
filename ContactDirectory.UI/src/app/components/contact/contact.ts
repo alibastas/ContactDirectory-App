@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy, signal, computed } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, signal, computed, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ContactService } from '../../services/contact.service';
 import { Contact } from '../../core/models/contact.model';
@@ -14,6 +14,8 @@ import { ContactSearchComponent } from '../../features/contacts/components/conta
 import { ContactTableComponent } from '../../features/contacts/components/contact-table/contact-table';
 import { UserProfileComponent, UserProfileData } from '../../features/contacts/components/user-profile/user-profile';
 import { ContactDetailsComponent } from '../../features/contacts/components/contact-details/contact-details';
+import { ExcelImportDialogComponent } from '../../features/contacts/components/excel-import/excel-import-dialog';
+import { ExcelService } from '../../services/excel.service';
 
 @Component({
   selector: 'app-contact',
@@ -21,7 +23,7 @@ import { ContactDetailsComponent } from '../../features/contacts/components/cont
   imports: [
     CommonModule, ToastModule, ConfirmDialogModule,
     TopbarComponent, StatCardsComponent, ContactSearchComponent, ContactTableComponent, UserProfileComponent,
-    ContactDetailsComponent
+    ContactDetailsComponent, ExcelImportDialogComponent
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -35,12 +37,73 @@ import { ContactDetailsComponent } from '../../features/contacts/components/cont
             <i class="pi pi-shield"></i>
             <span>Yönetici Paneli</span>
           </button>
+
+          <!-- İçe Aktar Dropdown -->
+          <div class="dropdown-wrapper">
+            <button class="btn-dropdown btn-import" (click)="toggleImportMenu($event)" title="İçe Aktar">
+              <i class="pi pi-download"></i>
+              <span>İçe Aktar</span>
+              <i class="pi pi-chevron-down dropdown-chevron" [class.open]="showImportMenu()"></i>
+            </button>
+            <div class="dropdown-menu" *ngIf="showImportMenu()" (click)="$event.stopPropagation()">
+              <button class="dropdown-item" (click)="openImportDialog('excel')">
+                <i class="pi pi-file-excel item-icon excel-icon"></i>
+                <div class="item-text">
+                  <span class="item-label">Excel'den Aktar</span>
+                  <span class="item-desc">.xlsx, .xls dosyaları</span>
+                </div>
+              </button>
+              <button class="dropdown-item" (click)="openImportDialog('csv')">
+                <i class="pi pi-file item-icon csv-icon"></i>
+                <div class="item-text">
+                  <span class="item-label">CSV'den Aktar</span>
+                  <span class="item-desc">.csv dosyaları</span>
+                </div>
+              </button>
+              <div class="dropdown-divider"></div>
+              <button class="dropdown-item" (click)="downloadTemplate()">
+                <i class="pi pi-file-export item-icon template-icon"></i>
+                <div class="item-text">
+                  <span class="item-label">Şablon İndir</span>
+                  <span class="item-desc">Toplu aktarım şablonu</span>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          <!-- Dışa Aktar Dropdown -->
+          <div class="dropdown-wrapper" *ngIf="globalTotalContacts() > 0">
+            <button class="btn-dropdown btn-export" (click)="toggleExportMenu($event)" title="Dışa Aktar">
+              <i class="pi pi-upload"></i>
+              <span>Dışa Aktar</span>
+              <i class="pi pi-chevron-down dropdown-chevron" [class.open]="showExportMenu()"></i>
+            </button>
+            <div class="dropdown-menu" *ngIf="showExportMenu()" (click)="$event.stopPropagation()">
+              <!-- Filtre Uyarısı -->
+              <div class="filter-notice" *ngIf="hasActiveFilter()">
+                <i class="pi pi-filter"></i>
+                <span>Aktif Filtre: "{{ activeFilterLabel() }}" ({{ totalRecords() }} kayıt)</span>
+              </div>
+              <button class="dropdown-item" (click)="exportData('excel')">
+                <i class="pi pi-file-excel item-icon excel-icon"></i>
+                <div class="item-text">
+                  <span class="item-label">Excel'e Aktar</span>
+                  <span class="item-desc">.xlsx formatında indir</span>
+                </div>
+              </button>
+              <button class="dropdown-item" (click)="exportData('csv')">
+                <i class="pi pi-file item-icon csv-icon"></i>
+                <div class="item-text">
+                  <span class="item-label">CSV'ye Aktar</span>
+                  <span class="item-desc">.csv formatında indir</span>
+                </div>
+              </button>
+            </div>
+          </div>
+
           <button class="btn-primary-add" (click)="addNewContact()">
             <i class="pi pi-plus"></i>
             <span>Yeni Kişi Ekle</span>
-          </button>
-          <button class="btn-export" (click)="exportCSV()" title="CSV Dışa Aktar" *ngIf="contacts().length > 0">
-            <i class="pi pi-download"></i>
           </button>
           <div class="user-avatar" title="Kullanıcı" (click)="openProfile()" style="cursor: pointer;">
             <i class="pi pi-user"></i>
@@ -103,6 +166,13 @@ import { ContactDetailsComponent } from '../../features/contacts/components/cont
         (visibleChange)="showProfileDialog.set($event)"
         (saveProfile)="saveProfileDetails($event)">
       </app-user-profile>
+
+      <app-excel-import-dialog
+        [visible]="showImportDialogVisible()"
+        [importType]="currentImportType()"
+        (visibleChange)="showImportDialogVisible.set($event)"
+        (importCompleted)="onImportCompleted($event)">
+      </app-excel-import-dialog>
     </div>
   `,
   styles: [`
@@ -153,7 +223,154 @@ import { ContactDetailsComponent } from '../../features/contacts/components/cont
       box-shadow: var(--shadow-md);
     }
 
-    .btn-export, .btn-logout {
+    /* ======= Dropdown Sistem ======= */
+    .dropdown-wrapper {
+      position: relative;
+    }
+
+    .btn-dropdown {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.55rem 0.95rem;
+      background: white;
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius-md);
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      box-shadow: var(--shadow-xs);
+    }
+
+    .dropdown-chevron {
+      font-size: 0.65rem;
+      transition: transform 0.2s ease;
+      margin-left: 0.15rem;
+    }
+    .dropdown-chevron.open {
+      transform: rotate(180deg);
+    }
+
+    .btn-import:hover {
+      background: #f0fdf4;
+      color: #047857;
+      border-color: #86efac;
+      transform: translateY(-1px);
+    }
+    .btn-export:hover {
+      background: #eff6ff;
+      color: #1d4ed8;
+      border-color: #93c5fd;
+      transform: translateY(-1px);
+    }
+
+    .dropdown-menu {
+      position: absolute;
+      top: calc(100% + 6px);
+      right: 0;
+      min-width: 240px;
+      background: white;
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius-lg);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06);
+      z-index: 200;
+      padding: 0.35rem;
+      animation: dropdownFadeIn 0.15s ease-out;
+    }
+
+    @keyframes dropdownFadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-4px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .dropdown-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      width: 100%;
+      padding: 0.6rem 0.75rem;
+      border: none;
+      background: transparent;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      text-align: left;
+    }
+    .dropdown-item:hover {
+      background: var(--surface-hover);
+    }
+
+    .item-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.9rem;
+      flex-shrink: 0;
+    }
+    .excel-icon {
+      background: #ecfdf5;
+      color: #059669;
+    }
+    .csv-icon {
+      background: #eff6ff;
+      color: #2563eb;
+    }
+    .template-icon {
+      background: #fdf4ff;
+      color: #a855f7;
+    }
+
+    .item-text {
+      display: flex;
+      flex-direction: column;
+    }
+    .item-label {
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    .item-desc {
+      font-size: 0.7rem;
+      color: var(--text-secondary);
+      margin-top: 1px;
+    }
+
+    .dropdown-divider {
+      height: 1px;
+      background: var(--surface-border);
+      margin: 0.3rem 0.5rem;
+    }
+
+    .filter-notice {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 0.75rem;
+      margin: 0.2rem 0.2rem 0.3rem;
+      background: linear-gradient(135deg, #fef3c7, #fde68a);
+      border: 1px solid #fbbf24;
+      border-radius: var(--radius-md);
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: #92400e;
+    }
+    .filter-notice i {
+      font-size: 0.75rem;
+      color: #d97706;
+    }
+
+    .btn-logout {
       background: var(--surface-card);
       color: var(--text-secondary);
       border: 1px solid var(--surface-border);
@@ -165,11 +382,6 @@ import { ContactDetailsComponent } from '../../features/contacts/components/cont
       justify-content: center;
       cursor: pointer;
       transition: all var(--transition-fast);
-    }
-    .btn-export:hover {
-      color: var(--primary-600);
-      border-color: var(--primary-200);
-      background: var(--primary-50);
     }
     .btn-logout:hover {
       color: var(--danger-600);
@@ -266,6 +478,8 @@ export class ContactComponent implements OnInit {
   activeFilter = signal<'all' | 'favorites'>('all');
   isLoading = signal(false);
   showProfileDialog = signal(false);
+  showImportDialogVisible = signal(false);
+  currentImportType = signal<'excel' | 'csv'>('excel');
   profileData = signal<UserProfileData>({ username: '', email: '', country: '' });
   
   showContactDetails = signal(false);
@@ -278,15 +492,36 @@ export class ContactComponent implements OnInit {
   globalTotalContacts = signal(0);
   globalFavoriteCount = signal(0);
 
+  showImportMenu = signal(false);
+  showExportMenu = signal(false);
+
   isAdmin = computed(() => this.authService.isAdmin());
+
+  hasActiveFilter = computed(() => {
+    return this.searchQuery().length > 0 || this.activeFilter() === 'favorites';
+  });
+
+  activeFilterLabel = computed(() => {
+    const parts: string[] = [];
+    if (this.searchQuery()) parts.push(this.searchQuery());
+    if (this.activeFilter() === 'favorites') parts.push('Favoriler');
+    return parts.join(' + ');
+  });
 
   constructor(
     private contactService: ContactService,
     private authService: AuthService,
+    private excelService: ExcelService,
     private router: Router,
     private messageService: MessageService,
     private confirmationService: ConfirmationService
   ) {}
+
+  @HostListener('document:click')
+  onDocumentClick() {
+    this.showImportMenu.set(false);
+    this.showExportMenu.set(false);
+  }
 
   ngOnInit(): void {
     const username = this.authService.getUsername();
@@ -307,6 +542,84 @@ export class ContactComponent implements OnInit {
         this.globalFavoriteCount.set(stats.favoriteContacts);
       },
       error: (err) => console.error('İstatistikler alınamadı', err)
+    });
+  }
+
+  toggleImportMenu(event: Event) {
+    event.stopPropagation();
+    this.showExportMenu.set(false);
+    this.showImportMenu.update(v => !v);
+  }
+
+  toggleExportMenu(event: Event) {
+    event.stopPropagation();
+    this.showImportMenu.set(false);
+    this.showExportMenu.update(v => !v);
+  }
+
+  openImportDialog(type: 'excel' | 'csv') {
+    this.showImportMenu.set(false);
+    this.currentImportType.set(type);
+    this.showImportDialogVisible.set(true);
+  }
+
+  downloadTemplate() {
+    this.showImportMenu.set(false);
+    this.excelService.downloadSampleTemplate();
+    this.messageService.add({
+      severity: 'info',
+      summary: 'Şablon İndirildi',
+      detail: 'Örnek şablon bilgisayarınıza kaydedildi.'
+    });
+  }
+
+  onImportCompleted(count: number) {
+    this.loadContacts();
+    this.loadStats();
+  }
+
+  exportData(format: 'excel' | 'csv') {
+    this.showExportMenu.set(false);
+
+    const query = this.searchQuery();
+    const isFav = this.activeFilter() === 'favorites';
+
+    this.contactService.getExportContacts(query, isFav).subscribe({
+      next: (allMatching) => {
+        if (!allMatching || allMatching.length === 0) {
+          this.messageService.add({
+            severity: 'warn',
+            summary: 'Kayıt Bulunamadı',
+            detail: 'Filtreye uygun dışa aktarılacak kişi bulunamadı.'
+          });
+          return;
+        }
+
+        let filterDescription = '';
+        if (query) filterDescription += `arama_${query}`;
+        if (isFav) filterDescription += (filterDescription ? '_' : '') + 'favoriler';
+
+        if (format === 'excel') {
+          this.excelService.exportContactsToExcel(allMatching, filterDescription);
+        } else {
+          this.excelService.exportContactsToCsv(allMatching, filterDescription);
+        }
+
+        const formatLabel = format === 'excel' ? 'Excel (.xlsx)' : 'CSV (.csv)';
+        this.messageService.add({
+          severity: 'success',
+          summary: `${formatLabel} İndirildi`,
+          detail: `Filtrenize uyan ${allMatching.length} kişi ${formatLabel} olarak başarıyla indirildi.`
+        });
+      },
+      error: (err) => {
+        console.error('Export hatasi:', err);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Hata',
+          detail: 'Kişiler dışa aktarılırken bir sorun oluştu.'
+        });
+      }
     });
   }
 
@@ -336,7 +649,7 @@ export class ContactComponent implements OnInit {
 
     this.contactService.updateContact(id, updatedContact).subscribe({
       next: () => {
-        this.loadStats(); // Update global favorite count
+        this.loadStats();
       },
       error: () => {
         this.contacts.update(contacts => contacts.map(c => c.id === id ? contact : c));
@@ -347,13 +660,13 @@ export class ContactComponent implements OnInit {
 
   setFilter(filter: 'all' | 'favorites') {
     this.activeFilter.set(filter);
-    this.currentPage.set(1); // Reset to first page
+    this.currentPage.set(1);
     this.loadContacts();
   }
   
   setSearchQuery(query: string) {
     this.searchQuery.set(query);
-    this.currentPage.set(1); // Reset to first page
+    this.currentPage.set(1);
     this.loadContacts();
   }
 
@@ -408,7 +721,7 @@ export class ContactComponent implements OnInit {
             next: () => {
               this.messageService.add({ severity: 'success', summary: 'Silindi', detail: 'Kişi başarıyla silindi.' });
               this.loadContacts();
-              this.loadStats(); // Update global stats
+              this.loadStats();
             },
             error: () => {
               this.messageService.add({ severity: 'error', summary: 'Hata', detail: 'Silme işlemi başarısız oldu.' });
@@ -417,30 +730,6 @@ export class ContactComponent implements OnInit {
         }
       }
     });
-  }
-
-  exportCSV() {
-    const currentContacts = this.contacts();
-    if (currentContacts.length === 0) return;
-
-    const headers = ['Ad', 'Soyad', 'Telefon', 'E-posta'];
-    const rows = currentContacts.map(c =>
-      [c.firstName, c.lastName, c.phoneNumber, c.email || ''].map(field =>
-        `"${(field || '').replace(/"/g, '""')}"`
-      ).join(',')
-    );
-
-    const bom = '\uFEFF';
-    const csv = bom + headers.join(',') + '\n' + rows.join('\n');
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `kisiler_${new Date().toISOString().slice(0, 10)}.csv`;
-    link.click();
-    URL.revokeObjectURL(url);
-
-    this.messageService.add({ severity: 'info', summary: 'Dışa Aktarıldı', detail: `${currentContacts.length} kişi CSV olarak indirildi.` });
   }
 
   logout() {
