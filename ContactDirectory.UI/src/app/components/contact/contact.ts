@@ -31,6 +31,10 @@ import { ContactDetailsComponent } from '../../features/contacts/components/cont
 
       <app-topbar [badgeText]="globalTotalContacts() + ' kişi kayıtlı'">
         <ng-container actions>
+          <button *ngIf="isAdmin()" class="btn-admin-panel" (click)="goToAdmin()" title="Yönetici Paneli">
+            <i class="pi pi-shield"></i>
+            <span>Yönetici Paneli</span>
+          </button>
           <button class="btn-primary-add" (click)="addNewContact()">
             <i class="pi pi-plus"></i>
             <span>Yeni Kişi Ekle</span>
@@ -124,6 +128,27 @@ import { ContactDetailsComponent } from '../../features/contacts/components/cont
     }
     .btn-primary-add:hover {
       background: var(--primary-700);
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .btn-admin-panel {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.6rem 1rem;
+      background: linear-gradient(135deg, #6366f1, #4f46e5);
+      color: white;
+      border: none;
+      border-radius: var(--radius-md);
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      box-shadow: var(--shadow-sm);
+    }
+    .btn-admin-panel:hover {
+      background: linear-gradient(135deg, #4f46e5, #4338ca);
       transform: translateY(-1px);
       box-shadow: var(--shadow-md);
     }
@@ -253,6 +278,8 @@ export class ContactComponent implements OnInit {
   globalTotalContacts = signal(0);
   globalFavoriteCount = signal(0);
 
+  isAdmin = computed(() => this.authService.isAdmin());
+
   constructor(
     private contactService: ContactService,
     private authService: AuthService,
@@ -281,6 +308,10 @@ export class ContactComponent implements OnInit {
       },
       error: (err) => console.error('İstatistikler alınamadı', err)
     });
+  }
+
+  goToAdmin() {
+    this.router.navigate(['/admin']);
   }
 
   addNewContact() {

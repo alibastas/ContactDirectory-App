@@ -92,4 +92,26 @@ public class AuditLogService : IAuditLogService
             UserSummaries = userSummaries
         };
     }
+
+    public async Task<bool> UpdateUserRoleAsync(int targetUserId, string newRole, int performedByUserId, string performedByUsername)
+    {
+        var user = await _context.Users.FindAsync(targetUserId);
+        if (user == null) return false;
+
+        var oldRole = user.Role;
+        user.Role = newRole;
+        await _context.SaveChangesAsync();
+
+        await LogAsync(
+            performedByUserId,
+            performedByUsername,
+            "UPDATE",
+            "UserRole",
+            user.Id,
+            $"Kullanıcı rolü güncellendi: '{user.Username}' kullanıcısının rolü '{oldRole}' -> '{newRole}' yapıldı."
+        );
+
+        return true;
+    }
 }
+
