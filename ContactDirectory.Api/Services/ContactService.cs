@@ -26,55 +26,79 @@ public class ContactService : IContactService
             query = query.Where(c => c.IsFavorite);
         }
 
-        if (!string.IsNullOrWhiteSpace(searchTerm))
+        if (string.IsNullOrWhiteSpace(searchTerm))
         {
-            // Token-Based Search: Arama metnini boşluklardan ayır.
-            // "ali öz" → ["ali", "öz"]
-            // Her token'ın en az bir alanda eşleşmesi gerekir (AND mantığı).
-            //
-            // PostgreSQL Türkçe Karakter Desteği:
-            // Veritabanı C locale ile oluşturulmuş, bu yüzden ILIKE Türkçe
-            // büyük-küçük harf dönüşümünü (Ö↔ö, Ş↔ş, İ↔i, Ğ↔ğ) yapamıyor.
-            // Çözüm: ICU collation "tr-TR-x-icu" ile LOWER() kullanmak.
+            var totalCount = await query.CountAsync();
+
+            var items = await query
+                .OrderBy(c => EF.Functions.Collate(c.FirstName ?? "", "tr-TR-x-icu"))
+                .ThenBy(c => EF.Functions.Collate(c.LastName ?? "", "tr-TR-x-icu"))
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .Select(c => new ContactResponseDto
+                {
+                    Id = c.Id,
+                    FirstName = c.FirstName,
+                    LastName = c.LastName,
+                    PhoneNumber = c.PhoneNumber,
+                    Email = c.Email,
+                    IsFavorite = c.IsFavorite
+                })
+                .ToListAsync();
+
+            return new PagedResult<ContactResponseDto>
+            {
+                TotalCount = totalCount,
+                Items = items
+            };
+        }
+        else
+        {
+            // Şifrelenmiş alanlar (PhoneNumber, Email) veritabanında AES-256 olarak saklandığından,
+            // SQL seviyesinde LIKE araması yapılamaz. Bu nedenle kullanıcının rehberindeki kişiler
+            // çekilir (EF Core ValueConverter ile otomatik çözülür) ve bellek üzerinde filtrelenir.
+            var allUserContacts = await query
+                .Select(c => new ContactResponseDto
+                {
+                    Id = c.Id,
+                    FirstName = c.FirstName,
+                    LastName = c.LastName,
+                    PhoneNumber = c.PhoneNumber,
+                    Email = c.Email,
+                    IsFavorite = c.IsFavorite
+                })
+                .ToListAsync();
+
             var tokens = searchTerm.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
-            foreach (var token in tokens)
+            var filtered = allUserContacts.Where(c =>
             {
-                var pattern = $"%{token.ToLowerInvariant()}%";
-                query = query.Where(c =>
-                    EF.Functions.Like(
-                        EF.Functions.Collate(c.FirstName ?? "", "tr-TR-x-icu").ToLower(), pattern) ||
-                    EF.Functions.Like(
-                        EF.Functions.Collate(c.LastName ?? "", "tr-TR-x-icu").ToLower(), pattern) ||
-                    EF.Functions.Like(
-                        EF.Functions.Collate(c.PhoneNumber ?? "", "tr-TR-x-icu").ToLower(), pattern) ||
-                    EF.Functions.Like(
-                        EF.Functions.Collate(c.Email ?? "", "tr-TR-x-icu").ToLower(), pattern));
-            }
+                var fn = c.FirstName ?? "";
+                var ln = c.LastName ?? "";
+                var pn = c.PhoneNumber ?? "";
+                var em = c.Email ?? "";
+
+                return tokens.All(token =>
+                    fn.Contains(token, StringComparison.CurrentCultureIgnoreCase) ||
+                    ln.Contains(token, StringComparison.CurrentCultureIgnoreCase) ||
+                    pn.Contains(token, StringComparison.OrdinalIgnoreCase) ||
+                    em.Contains(token, StringComparison.OrdinalIgnoreCase));
+            }).ToList();
+
+            var totalCount = filtered.Count;
+            var items = filtered
+                .OrderBy(c => c.FirstName, StringComparer.CurrentCultureIgnoreCase)
+                .ThenBy(c => c.LastName, StringComparer.CurrentCultureIgnoreCase)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            return new PagedResult<ContactResponseDto>
+            {
+                TotalCount = totalCount,
+                Items = items
+            };
         }
-
-        var totalCount = await query.CountAsync();
-
-        var items = await query
-            .OrderBy(c => EF.Functions.Collate(c.FirstName ?? "", "tr-TR-x-icu"))
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .Select(c => new ContactResponseDto
-            {
-                Id = c.Id,
-                FirstName = c.FirstName,
-                LastName = c.LastName,
-                PhoneNumber = c.PhoneNumber,
-                Email = c.Email,
-                IsFavorite = c.IsFavorite
-            })
-            .ToListAsync();
-
-        return new PagedResult<ContactResponseDto>
-        {
-            TotalCount = totalCount,
-            Items = items
-        };
     }
 
     public async Task<ContactResponseDto?> GetContactAsync(int id, int userId)
@@ -211,35 +235,16 @@ public class ContactService : IContactService
 
     public async Task<List<ContactResponseDto>> GetFilteredContactsForExportAsync(int userId, string? searchTerm, bool isFavoriteOnly)
     {
-        var query = _context.Contacts
-            .Where(c => c.UserId == userId)
-            .AsQueryable();
+        var query = _context.Contacts.Where(c => c.UserId == userId);
 
         if (isFavoriteOnly)
         {
             query = query.Where(c => c.IsFavorite);
         }
 
-        if (!string.IsNullOrWhiteSpace(searchTerm))
-        {
-            var tokens = searchTerm.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
-            foreach (var token in tokens)
-            {
-                var pattern = $"%{token.ToLowerInvariant()}%";
-                query = query.Where(c =>
-                    EF.Functions.Like(
-                        EF.Functions.Collate(c.FirstName ?? "", "tr-TR-x-icu").ToLower(), pattern) ||
-                    EF.Functions.Like(
-                        EF.Functions.Collate(c.LastName ?? "", "tr-TR-x-icu").ToLower(), pattern) ||
-                    EF.Functions.Like(
-                        EF.Functions.Collate(c.PhoneNumber ?? "", "tr-TR-x-icu").ToLower(), pattern) ||
-                    EF.Functions.Like(
-                        EF.Functions.Collate(c.Email ?? "", "tr-TR-x-icu").ToLower(), pattern));
-            }
-        }
-
-        return await query
+        var allContacts = await query
             .OrderBy(c => EF.Functions.Collate(c.FirstName ?? "", "tr-TR-x-icu"))
+            .ThenBy(c => EF.Functions.Collate(c.LastName ?? "", "tr-TR-x-icu"))
             .Select(c => new ContactResponseDto
             {
                 Id = c.Id,
@@ -250,6 +255,27 @@ public class ContactService : IContactService
                 IsFavorite = c.IsFavorite
             })
             .ToListAsync();
+
+        if (string.IsNullOrWhiteSpace(searchTerm))
+        {
+            return allContacts;
+        }
+
+        var tokens = searchTerm.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+        return allContacts.Where(c =>
+        {
+            var fn = c.FirstName ?? "";
+            var ln = c.LastName ?? "";
+            var pn = c.PhoneNumber ?? "";
+            var em = c.Email ?? "";
+
+            return tokens.All(token =>
+                fn.Contains(token, StringComparison.CurrentCultureIgnoreCase) ||
+                ln.Contains(token, StringComparison.CurrentCultureIgnoreCase) ||
+                pn.Contains(token, StringComparison.OrdinalIgnoreCase) ||
+                em.Contains(token, StringComparison.OrdinalIgnoreCase));
+        }).ToList();
     }
 
     public async Task<int> BulkCreateContactsAsync(int userId, List<ContactCreateDto> contacts)

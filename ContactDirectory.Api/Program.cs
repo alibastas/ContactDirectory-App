@@ -5,8 +5,15 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using ContactDirectory.Api.Interfaces;
 using ContactDirectory.Api.Services;
+using ContactDirectory.Core.Security;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// 0. Sütun Bazlı AES-256 Şifreleme Servisi
+var encryptionKey = builder.Configuration["Encryption:Key"];
+var encryptionService = new AesEncryptionService(encryptionKey);
+EncryptionHelper.Initialize(encryptionService);
+builder.Services.AddSingleton<IEncryptionService>(encryptionService);
 
 // 1. Veritabanı (PostgreSQL) Ayarı
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -93,5 +100,44 @@ app.UseAuthentication(); // ⚠️ ÖNEMLİ: Kimlik doğrulamayı (Token kontrol
 app.UseAuthorization();  // Yetkilendirmeyi etkinleştir
 
 app.MapControllers();
+
+// Mevcut açık metin kişileri otomatik olarak AES-256 ile şifrele (Geriye Dönük Veri Göçü)
+using (var scope = app.Services.CreateScope())
+{
+    try
+    {
+        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var unencryptedIds = await context.Database
+            .SqlQueryRaw<int>("""
+                SELECT "Id" FROM "Contacts" 
+                WHERE "PhoneNumber" NOT LIKE 'ENC:%' 
+                   OR ("Email" IS NOT NULL AND "Email" NOT LIKE 'ENC:%')
+            """)
+            .ToListAsync();
+
+        if (unencryptedIds.Count > 0)
+        {
+            var unencryptedContacts = await context.Contacts
+                .Where(c => unencryptedIds.Contains(c.Id))
+                .ToListAsync();
+
+            foreach (var c in unencryptedContacts)
+            {
+                context.Entry(c).Property(x => x.PhoneNumber).IsModified = true;
+                if (c.Email != null)
+                {
+                    context.Entry(c).Property(x => x.Email).IsModified = true;
+                }
+            }
+
+            await context.SaveChangesAsync();
+            Console.WriteLine($"[Şifreleme] {unencryptedContacts.Count} adet eski açık metin kişi başarıyla AES-256 ile şifrelendi.");
+        }
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"[Şifreleme Göçü Uyarısı] {ex.Message}");
+    }
+}
 
 app.Run();
