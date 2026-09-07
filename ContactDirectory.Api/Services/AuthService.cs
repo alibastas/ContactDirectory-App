@@ -52,11 +52,39 @@ public class AuthService : IAuthService
             return (false, string.Empty, string.Empty, "Kullanıcı adı veya şifre hatalı.");
         }
 
-        string token = CreateToken(user);
+        // Beni Hatırla işaretliyse 14 gün (20,160 dk), değilse appsettings'teki süre (varsayılan 60 dk)
+        int expireMinutes = request.RememberMe 
+            ? (14 * 24 * 60) 
+            : Convert.ToInt32(_configuration.GetSection("Jwt")["ExpireMinutes"] ?? "60");
+
+        string token = CreateToken(user, expireMinutes, request.RememberMe);
         return (true, token, user.Role, "Giriş başarılı.");
     }
 
-    private string CreateToken(User user)
+    public async Task<(bool IsSuccess, string Token, string Role, string Message)> RefreshTokenAsync(ClaimsPrincipal userPrincipal)
+    {
+        var userIdClaim = userPrincipal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
+        {
+            return (false, string.Empty, string.Empty, "Geçersiz kimlik oturumu.");
+        }
+
+        var user = await _context.Users.FindAsync(userId);
+        if (user == null)
+        {
+            return (false, string.Empty, string.Empty, "Kullanıcı bulunamadı.");
+        }
+
+        bool isRememberMe = userPrincipal.FindFirst("remember_me")?.Value == "true";
+        int expireMinutes = isRememberMe 
+            ? (14 * 24 * 60) 
+            : Convert.ToInt32(_configuration.GetSection("Jwt")["ExpireMinutes"] ?? "60");
+
+        string newToken = CreateToken(user, expireMinutes, isRememberMe);
+        return (true, newToken, user.Role, "Oturum başarıyla yenilendi.");
+    }
+
+    private string CreateToken(User user, int expireMinutes, bool rememberMe)
     {
         var jwtSettings = _configuration.GetSection("Jwt");
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["Key"]!));
@@ -66,14 +94,15 @@ public class AuthService : IAuthService
         {
             new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new Claim(ClaimTypes.Name, user.Username),
-            new Claim(ClaimTypes.Role, user.Role)
+            new Claim(ClaimTypes.Role, user.Role),
+            new Claim("remember_me", rememberMe ? "true" : "false")
         };
 
         var token = new JwtSecurityToken(
             issuer: jwtSettings["Issuer"],
             audience: jwtSettings["Audience"],
             claims: claims,
-            expires: DateTime.Now.AddMinutes(Convert.ToDouble(jwtSettings["ExpireMinutes"])),
+            expires: DateTime.Now.AddMinutes(expireMinutes),
             signingCredentials: creds
         );
 

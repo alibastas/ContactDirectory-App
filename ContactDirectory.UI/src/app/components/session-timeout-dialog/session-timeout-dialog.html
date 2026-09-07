@@ -1,0 +1,49 @@
+<p-dialog 
+  header="Oturum Zaman Aşımı Uyarısı" 
+  [visible]="sessionService.showWarning()" 
+  [modal]="true" 
+  [closable]="false"
+  [draggable]="false" 
+  [resizable]="false" 
+  [style]="{ width: '450px', maxWidth: '92vw' }"
+  styleClass="session-timeout-dialog">
+
+  <div class="timeout-body">
+    <!-- Icon & Warning -->
+    <div class="timeout-header-area">
+      <div class="timeout-icon-wrapper">
+        <i class="pi pi-clock timeout-clock-icon"></i>
+      </div>
+      <h4>Hareketsizlik Nedeniyle Oturum Sonlanıyor</h4>
+      <p class="timeout-desc">
+        Uzun süredir işlem yapmadığınız tespit edildi. Güvenliğiniz için oturumunuz birazdan otomatik olarak kapatılacaktır.
+      </p>
+    </div>
+
+    <!-- Countdown Timer Display -->
+    <div class="countdown-card">
+      <span class="countdown-number">{{ sessionService.countdown() }}</span>
+      <span class="countdown-unit">saniye kaldı</span>
+      <div class="countdown-progress-bar">
+        <div 
+          class="countdown-progress-fill" 
+          [style.width.%]="(sessionService.countdown() / 60) * 100">
+        </div>
+      </div>
+    </div>
+
+    <p class="timeout-prompt">Çalışmaya devam etmek istiyor musunuz?</p>
+
+    <!-- Footer Buttons -->
+    <div class="timeout-actions">
+      <button type="button" class="btn-timeout-logout" (click)="onLogout()">
+        <i class="pi pi-sign-out"></i>
+        <span>Çıkış Yap</span>
+      </button>
+      <button type="button" class="btn-timeout-extend" (click)="onExtend()">
+        <i class="pi pi-refresh"></i>
+        <span>Oturumu Uzat</span>
+      </button>
+    </div>
+  </div>
+</p-dialog>

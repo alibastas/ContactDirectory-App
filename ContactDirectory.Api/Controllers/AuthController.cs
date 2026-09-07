@@ -1,5 +1,6 @@
 using ContactDirectory.Api.Interfaces;
 using ContactDirectory.Core.DTOs;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ContactDirectory.Api.Controllers;
@@ -37,5 +38,18 @@ public class AuthController : ControllerBase
         }
 
         return Ok(new { token = result.Token, role = result.Role });
+    }
+
+    [Authorize]
+    [HttpPost("refresh")]
+    public async Task<IActionResult> Refresh()
+    {
+        var result = await _authService.RefreshTokenAsync(User);
+        if (!result.IsSuccess)
+        {
+            return Unauthorized(result.Message);
+        }
+
+        return Ok(new { token = result.Token, role = result.Role, message = result.Message });
     }
 }

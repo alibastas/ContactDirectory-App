@@ -4,7 +4,7 @@
   <div class="bg-orb bg-orb-2"></div>
   <div class="bg-orb bg-orb-3"></div>
 
-  <div class="login-card" [class.shake]="shakeCard()">
+  <div class="login-card">
     <!-- Logo / Brand -->
     <div class="brand">
       <div class="brand-icon">
@@ -16,7 +16,7 @@
 
     <!-- Toast Messages -->
     <div class="toast toast-error" *ngIf="errorMessage()">
-      <i class="pi pi-times-circle"></i>
+      <i class="pi pi-exclamation-circle"></i>
       <span>{{ errorMessage() }}</span>
     </div>
     <div class="toast toast-success" *ngIf="successMessage()">
@@ -34,9 +34,10 @@
           type="text"
           id="login-username"
           [ngModel]="username()"
-          (ngModelChange)="username.set($event)"
+          (ngModelChange)="username.set($event); onInputChange()"
           name="username"
           required
+          [class.input-error]="errorMessage()"
           placeholder="Kullanıcı adı"
           autocomplete="username"
         />
@@ -50,9 +51,10 @@
           [type]="showPassword() ? 'text' : 'password'"
           id="login-password"
           [ngModel]="password()"
-          (ngModelChange)="password.set($event)"
+          (ngModelChange)="password.set($event); onInputChange()"
           name="password"
           required
+          [class.input-error]="errorMessage()"
           placeholder="Şifre"
           autocomplete="current-password"
         />
@@ -61,7 +63,36 @@
         </button>
       </div>
 
-      <button type="submit" class="btn-submit" [disabled]="isSubmitting()">
+      <!-- Beni Hatırla Seçeneği (Sadece Giriş Yap Modunda) -->
+      <div class="remember-me-row" *ngIf="!isRegisterMode()">
+        <label class="remember-me-label" for="remember-me">
+          <input
+            type="checkbox"
+            id="remember-me"
+            [ngModel]="rememberMe()"
+            (ngModelChange)="rememberMe.set($event)"
+            name="rememberMe"
+          />
+          <span>Beni Hatırla</span>
+        </label>
+      </div>
+
+      <!-- KVKK Onay Kutusu (Sadece Kayıt Ol Modunda) -->
+      <div class="kvkk-agreement-box" *ngIf="isRegisterMode()">
+        <div class="kvkk-checkbox-row">
+          <input
+            type="checkbox"
+            id="kvkk-consent"
+            [checked]="kvkkAccepted()"
+            (click)="onCheckboxClick($event)"
+          />
+          <label for="kvkk-consent" (click)="onCheckboxClick($event)">
+            <span class="kvkk-link" (click)="openKvkkModal($event)">KVKK Aydınlatma Metni</span> ve Kullanıcı Sözleşmesi'ni okudum, kabul ediyorum.
+          </label>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-submit" [disabled]="isSubmitting() || (isRegisterMode() && !kvkkAccepted())">
         <span *ngIf="!isSubmitting()">
           <i class="pi" [ngClass]="isRegisterMode() ? 'pi-user-plus' : 'pi-sign-in'" style="margin-right: 8px;"></i>
           {{ isRegisterMode() ? 'Kayıt Ol' : 'Giriş Yap' }}
@@ -87,4 +118,92 @@
 
   <!-- Footer -->
   <p class="login-footer">© 2026 Kişi Rehberi — Tüm Hakları Saklıdır.</p>
+
+  <!-- KVKK & Aydınlatma Metni Modalı -->
+  <p-dialog 
+    header="KVKK Aydınlatma Metni ve Veri Güvenliği Taahhütnamesi" 
+    [visible]="showKvkkModal()" 
+    (visibleChange)="showKvkkModal.set($event)" 
+    [modal]="true" 
+    [style]="{ width: '680px', maxWidth: '95vw' }"
+    [draggable]="false" 
+    [resizable]="false" 
+    styleClass="kvkk-dialog">
+
+    <div class="kvkk-dialog-body">
+      <div class="kvkk-modal-intro">
+        <i class="pi pi-shield"></i>
+        <div>
+          <h4>6698 Sayılı KVKK Kapsamında Bilgilendirme</h4>
+          <p>Hesabınızı oluşturmadan önce kişisel verilerinizin nasıl işlendiğini ve korunduğunu lütfen inceleyiniz.</p>
+        </div>
+      </div>
+
+      <!-- Scroll Edilecek Metin Alanı -->
+      <div class="kvkk-scroll-area" (scroll)="onScrollText($event)">
+        <h5>1. Veri Sorumlusu ve Kapsam</h5>
+        <p>
+          Bu Aydınlatma Metni, 6698 sayılı Kişisel Verilerin Korunması Kanunu ("KVKK") uyarınca, 
+          <strong>Kişi Rehberi (ContactDirectory)</strong> uygulamasını kullanan kayıtlı kullanıcıların ve rehbere dahil edilen 
+          kişilerin verilerinin toplanması, saklanması ve işlenmesi prensiplerini düzenlemek amacıyla hazırlanmıştır.
+        </p>
+
+        <h5>2. İşlenen Kişisel Verileriniz</h5>
+        <p>Platformumuza kayıt olurken ve uygulamayı kullanırken aşağıdaki kişisel verileriniz işlenmektedir:</p>
+        <ul>
+          <li><strong>Hesap Bilgileri:</strong> Kullanıcı adı ve güvenli tek yönlü kriptografik algoritmalarla (BCrypt) korunan parola hash'i.</li>
+          <li><strong>Rehber Kayıtları:</strong> Kullanıcının bizzat rehberine girdiği kişilere ait Ad, Soyad, Telefon Numarası, E-posta Adresi ve Favori durumu.</li>
+          <li><strong>İşlem Güvenliği Kayıtları:</strong> Sistem güvenliği, hesap denetimi ve yetkisiz erişimlerin tespiti için tutulan zaman damgalı işlem günlükleri (Audit Logs).</li>
+        </ul>
+
+        <h5>3. Sütun Bazlı AES-256 Şifreleme ve Veri Güvenliği</h5>
+        <div class="kvkk-highlight-box">
+          <i class="pi pi-lock"></i>
+          <div>
+            <strong>Kriptografik Güvenlik Standardı:</strong>
+            <p>
+              Rehberinize kaydettiğiniz hassas kişisel veriler (Telefon Numarası ve E-posta), PostgreSQL veritabanımızda 
+              açık metin olarak asla tutulmaz. Tüm bu alanlar <strong>AES-256-CBC</strong> kurumsal şifreleme algoritmasıyla 
+              veritabanı seviyesinde şifrelenir. Veritabanı yöneticileri dahil hiçbir yetkisiz taraf verilerinizi açık metin olarak görüntüleyemez.
+            </p>
+          </div>
+        </div>
+
+        <h5>4. Verilerin İşlenme Amacı ve Paylaşım Kısıtları</h5>
+        <p>
+          Toplanan kişisel verileriniz; yalnızca kişisel rehberinizi güvenli biçimde organize etmeniz, hızlı ve detaylı arama yapabilmeniz, 
+          Excel veya CSV formatında içe/dışa aktarım yapabilmeniz amacıyla işlenir. Kişisel verileriniz kesinlikle reklam, pazarlama 
+          veya profil çıkarma amacıyla üçüncü şahıslara veya kurumlara satılamaz ve aktarılamaz.
+        </p>
+
+        <h5>5. İlgili Kişinin Hakları (KVKK Madde 11)</h5>
+        <p>
+          KVKK'nın 11. maddesi kapsamında; verilerinizin işlenip işlenmediğini öğrenme, yanlış veya eksik kayıtları güncelleme, 
+          istediğiniz an rehberinizdeki kayıtları veya hesabınızı kalıcı olarak silme hakkına sahipsiniz.
+        </p>
+
+        <h5>6. Kullanıcı Beyanı ve Onay</h5>
+        <p>
+          Bu metni onaylayarak; platformu yalnızca yasal amaçlarla kullanacağınızı, rehbere girdiğiniz üçüncü şahıs iletişim bilgilerini 
+          ilgili mevzuata uygun şekilde sağladığınızı ve yukarıdaki koşulları anladığınızı beyan etmektesiniz.
+        </p>
+      </div>
+
+      <!-- Modal Butonları -->
+      <div class="kvkk-dialog-footer">
+        <button type="button" class="btn-kvkk-cancel" (click)="closeKvkkModal()">
+          Vazgeç
+        </button>
+        <button 
+          type="button" 
+          class="btn-kvkk-accept" 
+          [disabled]="!hasScrolledToBottom()" 
+          (click)="acceptKvkk()">
+          <i class="pi pi-check"></i>
+          <span>Okudum, Anladım ve Onaylıyorum</span>
+        </button>
+      </div>
+    </div>
+  </p-dialog>
 </div>
+

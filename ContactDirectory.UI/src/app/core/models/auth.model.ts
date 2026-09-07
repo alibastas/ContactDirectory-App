@@ -9,12 +9,14 @@
 export interface LoginRequest {
   username: string;
   password: string;
+  rememberMe?: boolean;
 }
 
 /** Login başarılı olduğunda backend'den dönen yanıt */
 export interface LoginResponse {
   token: string;
   role: string;
+  message?: string;
 }
 
 /** Kayıt isteği için gönderilen veri */
