@@ -1,6 +1,6 @@
 import { Component, OnInit, ChangeDetectionStrategy, signal, computed, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ContactService } from '../../services/contact.service';
+import { ContactService, AdvancedSearchParams } from '../../services/contact.service';
 import { Contact } from '../../core/models/contact.model';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth';
@@ -133,7 +133,8 @@ import { ExcelService } from '../../services/excel.service';
                 [activeFilter]="activeFilter()"
                 [searchQuery]="searchQuery()"
                 (filterChange)="setFilter($event)"
-                (searchChange)="setSearchQuery($event)">
+                (searchChange)="setSearchQuery($event)"
+                (advancedChange)="setAdvancedFilters($event)">
               </app-contact-search>
             </div>
 
@@ -495,17 +496,26 @@ export class ContactComponent implements OnInit {
   showImportMenu = signal(false);
   showExportMenu = signal(false);
 
+  advancedSearchParams = signal<AdvancedSearchParams>({});
+
   isAdmin = computed(() => this.authService.isAdmin());
 
   hasActiveFilter = computed(() => {
-    return this.searchQuery().length > 0 || this.activeFilter() === 'favorites';
+    const adv = this.advancedSearchParams();
+    const hasAdv = !!(adv.firstName || adv.lastName || adv.phoneNumber || adv.email);
+    return this.searchQuery().length > 0 || this.activeFilter() === 'favorites' || hasAdv;
   });
 
   activeFilterLabel = computed(() => {
     const parts: string[] = [];
     if (this.searchQuery()) parts.push(this.searchQuery());
     if (this.activeFilter() === 'favorites') parts.push('Favoriler');
-    return parts.join(' + ');
+    const adv = this.advancedSearchParams();
+    if (adv.firstName) parts.push(`Ad: ${adv.firstName}`);
+    if (adv.lastName) parts.push(`Soyad: ${adv.lastName}`);
+    if (adv.phoneNumber) parts.push(`Tel: ${adv.phoneNumber}`);
+    if (adv.email) parts.push(`E-posta: ${adv.email}`);
+    return parts.join(' | ');
   });
 
   constructor(
@@ -583,8 +593,9 @@ export class ContactComponent implements OnInit {
 
     const query = this.searchQuery();
     const isFav = this.activeFilter() === 'favorites';
+    const adv = this.advancedSearchParams();
 
-    this.contactService.getExportContacts(query, isFav).subscribe({
+    this.contactService.getExportContacts(query, isFav, adv).subscribe({
       next: (allMatching) => {
         if (!allMatching || allMatching.length === 0) {
           this.messageService.add({
@@ -598,6 +609,10 @@ export class ContactComponent implements OnInit {
         let filterDescription = '';
         if (query) filterDescription += `arama_${query}`;
         if (isFav) filterDescription += (filterDescription ? '_' : '') + 'favoriler';
+        if (adv.firstName) filterDescription += (filterDescription ? '_' : '') + `ad_${adv.firstName}`;
+        if (adv.lastName) filterDescription += (filterDescription ? '_' : '') + `soyad_${adv.lastName}`;
+        if (adv.phoneNumber) filterDescription += (filterDescription ? '_' : '') + `tel_${adv.phoneNumber}`;
+        if (adv.email) filterDescription += (filterDescription ? '_' : '') + `mail_${adv.email}`;
 
         if (format === 'excel') {
           this.excelService.exportContactsToExcel(allMatching, filterDescription);
@@ -670,6 +685,12 @@ export class ContactComponent implements OnInit {
     this.loadContacts();
   }
 
+  setAdvancedFilters(filters: AdvancedSearchParams) {
+    this.advancedSearchParams.set(filters);
+    this.currentPage.set(1);
+    this.loadContacts();
+  }
+
   onLazyLoad(event: any) {
     const page = event.first / event.rows + 1;
     this.currentPage.set(page);
@@ -683,8 +704,9 @@ export class ContactComponent implements OnInit {
     const isFavoriteOnly = this.activeFilter() === 'favorites';
     const page = this.currentPage();
     const pageSize = this.pageSize();
+    const adv = this.advancedSearchParams();
 
-    this.contactService.getContacts(searchTerm, isFavoriteOnly, page, pageSize).subscribe({
+    this.contactService.getContacts(searchTerm, isFavoriteOnly, page, pageSize, adv).subscribe({
       next: (response) => {
         let loadedContacts = Array.isArray(response.items) ? response.items : [];
         this.contacts.set(loadedContacts.map((c: any) => ({

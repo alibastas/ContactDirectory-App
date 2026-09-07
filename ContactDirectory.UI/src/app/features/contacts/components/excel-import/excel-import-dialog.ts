@@ -25,6 +25,8 @@ export class ExcelImportDialogComponent {
   parseResult = signal<ParseExcelResult | null>(null);
   errorMessage = signal<string>('');
   isDragOver = signal<boolean>(false);
+  duplicateStrategy = signal<'skip' | 'update' | 'allow'>('skip');
+  fileDuplicateCount = signal<number>(0);
 
   constructor(
     private excelService: ExcelService,
@@ -153,6 +155,21 @@ export class ExcelImportDialogComponent {
     try {
       const result = await this.excelService.parseExcelFile(file);
       this.parseResult.set(result);
+      
+      // Dosya içi mükerrer kontrolü
+      const phoneSet = new Set<string>();
+      let dupCount = 0;
+      for (const c of result.validContacts) {
+        const norm = (c.phoneNumber || '').replace(/\D/g, '');
+        if (norm) {
+          if (phoneSet.has(norm)) {
+            dupCount++;
+          } else {
+            phoneSet.add(norm);
+          }
+        }
+      }
+      this.fileDuplicateCount.set(dupCount);
       this.isParsing.set(false);
     } catch (err) {
       this.isParsing.set(false);
@@ -172,6 +189,12 @@ export class ExcelImportDialogComponent {
     this.isParsing.set(false);
     this.isUploading.set(false);
     this.isDragOver.set(false);
+    this.duplicateStrategy.set('skip');
+    this.fileDuplicateCount.set(0);
+  }
+
+  setStrategy(strategy: 'skip' | 'update' | 'allow'): void {
+    this.duplicateStrategy.set(strategy);
   }
 
   confirmImport(): void {
@@ -187,15 +210,15 @@ export class ExcelImportDialogComponent {
       isFavorite: false
     }));
 
-    this.contactService.bulkAddContacts(contactsToSave).subscribe({
+    this.contactService.bulkAddContacts(contactsToSave, this.duplicateStrategy()).subscribe({
       next: (res) => {
         this.isUploading.set(false);
         this.messageService.add({
           severity: 'success',
           summary: 'Aktarım Başarılı',
-          detail: `${res.count} kişi başarıyla rehbere aktarıldı!`
+          detail: res.message || `${res.addedCount} kişi başarıyla rehbere aktarıldı!`
         });
-        this.importCompleted.emit(res.count);
+        this.importCompleted.emit(res.addedCount + res.updatedCount);
         this.onVisibleChange(false);
       },
       error: (err) => {

@@ -81,6 +81,10 @@
           <i class="pi pi-check-circle"></i>
           {{ parseResult()?.validContacts?.length || 0 }} Geçerli Kişi
         </span>
+        <span class="summary-badge badge-duplicate" *ngIf="fileDuplicateCount() > 0">
+          <i class="pi pi-copy"></i>
+          {{ fileDuplicateCount() }} Yinelenen Numara
+        </span>
         <span class="summary-badge badge-invalid" *ngIf="(parseResult()?.invalidContacts?.length || 0) > 0">
           <i class="pi pi-exclamation-triangle"></i>
           {{ parseResult()?.invalidContacts?.length }} Hatalı/Eksik Satır
@@ -114,6 +118,56 @@
       <small *ngIf="(parseResult()?.validContacts?.length || 0) > 50" style="color: var(--text-muted); display: block; margin-top: 0.4rem;">
         * İlk 50 kayıt önizlemede gösteriliyor (Toplam {{ parseResult()?.validContacts?.length }} kişi aktarılacak).
       </small>
+
+      <!-- Duplicate Strategy Options -->
+      <div class="duplicate-strategy-card" *ngIf="(parseResult()?.validContacts?.length || 0) > 0">
+        <div class="strategy-header">
+          <i class="pi pi-shield"></i>
+          <div>
+            <h4>Aynı Kişi / Yinelenen Numara Yönetimi</h4>
+            <p>Rehberinizde veya dosya içerisinde zaten kayıtlı olan telefon numaraları için tercihiniz:</p>
+          </div>
+        </div>
+
+        <div class="strategy-options">
+          <div class="strategy-option" [class.selected]="duplicateStrategy() === 'skip'" (click)="setStrategy('skip')">
+            <div class="option-radio">
+              <span class="radio-circle" [class.checked]="duplicateStrategy() === 'skip'"></span>
+            </div>
+            <div class="option-content">
+              <div class="option-title">
+                <strong>Yinelenenleri Atla</strong>
+                <span class="recommend-badge">Önerilen</span>
+              </div>
+              <p class="option-desc">Rehberinizdeki mevcut kayıtlar korunur, dosyadaki aynı numaralı kişiler atlanır.</p>
+            </div>
+          </div>
+
+          <div class="strategy-option" [class.selected]="duplicateStrategy() === 'update'" (click)="setStrategy('update')">
+            <div class="option-radio">
+              <span class="radio-circle" [class.checked]="duplicateStrategy() === 'update'"></span>
+            </div>
+            <div class="option-content">
+              <div class="option-title">
+                <strong>Mevcut Kayıtları Güncelle</strong>
+              </div>
+              <p class="option-desc">Rehberde eşleşen kişinin Ad, Soyad ve E-posta bilgileri yeni dosya verisiyle güncellenir.</p>
+            </div>
+          </div>
+
+          <div class="strategy-option" [class.selected]="duplicateStrategy() === 'allow'" (click)="setStrategy('allow')">
+            <div class="option-radio">
+              <span class="radio-circle" [class.checked]="duplicateStrategy() === 'allow'"></span>
+            </div>
+            <div class="option-content">
+              <div class="option-title">
+                <strong>Tümünü Yeni Olarak Ekle</strong>
+              </div>
+              <p class="option-desc">Numara kontrolü yapılmaksızın tüm satırlar yeni birer kişi olarak rehbere eklenir.</p>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Dialog Footer Actions -->

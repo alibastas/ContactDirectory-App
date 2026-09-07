@@ -23,10 +23,23 @@ public class ContactsController : ControllerBase
         [FromQuery] string? searchTerm = null, 
         [FromQuery] bool isFavoriteOnly = false,
         [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 10)
+        [FromQuery] int pageSize = 10,
+        [FromQuery] string? firstName = null,
+        [FromQuery] string? lastName = null,
+        [FromQuery] string? phoneNumber = null,
+        [FromQuery] string? email = null)
     {
         int userId = GetCurrentUserId();
-        var result = await _contactService.GetContactsAsync(userId, searchTerm, isFavoriteOnly, page, pageSize);
+        var result = await _contactService.GetContactsAsync(
+            userId, 
+            searchTerm, 
+            isFavoriteOnly, 
+            page, 
+            pageSize, 
+            firstName, 
+            lastName, 
+            phoneNumber, 
+            email);
         return Ok(result);
     }
 
@@ -92,24 +105,35 @@ public class ContactsController : ControllerBase
     [HttpGet("export-data")]
     public async Task<ActionResult<List<ContactResponseDto>>> GetExportData(
         [FromQuery] string? searchTerm = null,
-        [FromQuery] bool isFavoriteOnly = false)
+        [FromQuery] bool isFavoriteOnly = false,
+        [FromQuery] string? firstName = null,
+        [FromQuery] string? lastName = null,
+        [FromQuery] string? phoneNumber = null,
+        [FromQuery] string? email = null)
     {
         int userId = GetCurrentUserId();
-        var data = await _contactService.GetFilteredContactsForExportAsync(userId, searchTerm, isFavoriteOnly);
+        var data = await _contactService.GetFilteredContactsForExportAsync(
+            userId, 
+            searchTerm, 
+            isFavoriteOnly, 
+            firstName, 
+            lastName, 
+            phoneNumber, 
+            email);
         return Ok(data);
     }
 
     [HttpPost("bulk")]
-    public async Task<IActionResult> BulkCreateContacts([FromBody] List<ContactCreateDto> contacts)
+    public async Task<ActionResult<BulkContactResponseDto>> BulkCreateContacts([FromBody] BulkContactRequestDto request)
     {
-        if (contacts == null || contacts.Count == 0)
+        if (request == null || request.Contacts == null || request.Contacts.Count == 0)
         {
             return BadRequest("Eklenecek kişi listesi boş olamaz.");
         }
 
         int userId = GetCurrentUserId();
-        var addedCount = await _contactService.BulkCreateContactsAsync(userId, contacts);
-        return Ok(new { count = addedCount, message = $"{addedCount} kişi başarıyla rehbere aktarıldı." });
+        var result = await _contactService.BulkCreateContactsAsync(userId, request);
+        return Ok(result);
     }
 
     private int GetCurrentUserId()

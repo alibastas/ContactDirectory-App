@@ -92,22 +92,22 @@ export class ExcelService {
   downloadSampleTemplate(): void {
     const sampleRows = [
       {
-        'Ad': 'Ahmet',
-        'Soyad': 'Yılmaz',
-        'Telefon Numarası': '05551234567',
-        'E-posta Adresi': 'ahmet.yilmaz@example.com'
+        'Ad': 'Örnek Ad 1',
+        'Soyad': 'Örnek Soyad 1',
+        'Telefon Numarası': '05000000001',
+        'E-posta Adresi': 'ornek1@sirket.com'
       },
       {
-        'Ad': 'Ayşe',
-        'Soyad': 'Kaya',
-        'Telefon Numarası': '05329876543',
-        'E-posta Adresi': 'ayse.kaya@example.com'
+        'Ad': 'Örnek Ad 2',
+        'Soyad': 'Örnek Soyad 2',
+        'Telefon Numarası': '05000000002',
+        'E-posta Adresi': 'ornek2@sirket.com'
       },
       {
-        'Ad': 'Mehmet',
-        'Soyad': 'Öztürk',
-        'Telefon Numarası': '05445554433',
-        'E-posta Adresi': 'mehmet.ozturk@example.com'
+        'Ad': 'Örnek Ad 3',
+        'Soyad': 'Örnek Soyad 3',
+        'Telefon Numarası': '05000000003',
+        'E-posta Adresi': 'ornek3@sirket.com'
       }
     ];
 
@@ -131,22 +131,22 @@ export class ExcelService {
   downloadSampleCsvTemplate(): void {
     const sampleRows = [
       {
-        'Ad': 'Ahmet',
-        'Soyad': 'Yılmaz',
-        'Telefon Numarası': '05551234567',
-        'E-posta Adresi': 'ahmet.yilmaz@example.com'
+        'Ad': 'Örnek Ad 1',
+        'Soyad': 'Örnek Soyad 1',
+        'Telefon Numarası': '05000000001',
+        'E-posta Adresi': 'ornek1@sirket.com'
       },
       {
-        'Ad': 'Ayşe',
-        'Soyad': 'Kaya',
-        'Telefon Numarası': '05329876543',
-        'E-posta Adresi': 'ayse.kaya@example.com'
+        'Ad': 'Örnek Ad 2',
+        'Soyad': 'Örnek Soyad 2',
+        'Telefon Numarası': '05000000002',
+        'E-posta Adresi': 'ornek2@sirket.com'
       },
       {
-        'Ad': 'Mehmet',
-        'Soyad': 'Öztürk',
-        'Telefon Numarası': '05445554433',
-        'E-posta Adresi': 'mehmet.ozturk@example.com'
+        'Ad': 'Örnek Ad 3',
+        'Soyad': 'Örnek Soyad 3',
+        'Telefon Numarası': '05000000003',
+        'E-posta Adresi': 'ornek3@sirket.com'
       }
     ];
 

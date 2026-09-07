@@ -17,7 +17,16 @@ public class ContactService : IContactService
         _auditLogService = auditLogService;
     }
 
-    public async Task<PagedResult<ContactResponseDto>> GetContactsAsync(int userId, string? searchTerm, bool isFavoriteOnly, int page, int pageSize)
+    public async Task<PagedResult<ContactResponseDto>> GetContactsAsync(
+        int userId, 
+        string? searchTerm, 
+        bool isFavoriteOnly, 
+        int page, 
+        int pageSize,
+        string? firstName = null,
+        string? lastName = null,
+        string? phoneNumber = null,
+        string? email = null)
     {
         var query = _context.Contacts.Where(c => c.UserId == userId);
 
@@ -26,7 +35,13 @@ public class ContactService : IContactService
             query = query.Where(c => c.IsFavorite);
         }
 
-        if (string.IsNullOrWhiteSpace(searchTerm))
+        bool hasSearch = !string.IsNullOrWhiteSpace(searchTerm) ||
+                         !string.IsNullOrWhiteSpace(firstName) ||
+                         !string.IsNullOrWhiteSpace(lastName) ||
+                         !string.IsNullOrWhiteSpace(phoneNumber) ||
+                         !string.IsNullOrWhiteSpace(email);
+
+        if (!hasSearch)
         {
             var totalCount = await query.CountAsync();
 
@@ -69,24 +84,65 @@ public class ContactService : IContactService
                 })
                 .ToListAsync();
 
-            var tokens = searchTerm.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            var filtered = allUserContacts.AsEnumerable();
 
-            var filtered = allUserContacts.Where(c =>
+            // Genel Arama (searchTerm)
+            if (!string.IsNullOrWhiteSpace(searchTerm))
             {
-                var fn = c.FirstName ?? "";
-                var ln = c.LastName ?? "";
-                var pn = c.PhoneNumber ?? "";
-                var em = c.Email ?? "";
+                var tokens = searchTerm.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                filtered = filtered.Where(c =>
+                {
+                    var fn = c.FirstName ?? "";
+                    var ln = c.LastName ?? "";
+                    var pn = c.PhoneNumber ?? "";
+                    var em = c.Email ?? "";
 
-                return tokens.All(token =>
-                    fn.Contains(token, StringComparison.CurrentCultureIgnoreCase) ||
-                    ln.Contains(token, StringComparison.CurrentCultureIgnoreCase) ||
-                    pn.Contains(token, StringComparison.OrdinalIgnoreCase) ||
-                    em.Contains(token, StringComparison.OrdinalIgnoreCase));
-            }).ToList();
+                    return tokens.All(token =>
+                        fn.Contains(token, StringComparison.CurrentCultureIgnoreCase) ||
+                        ln.Contains(token, StringComparison.CurrentCultureIgnoreCase) ||
+                        pn.Contains(token, StringComparison.OrdinalIgnoreCase) ||
+                        em.Contains(token, StringComparison.OrdinalIgnoreCase));
+                });
+            }
 
-            var totalCount = filtered.Count;
-            var items = filtered
+            // Detaylı Arama Filtreleri
+            if (!string.IsNullOrWhiteSpace(firstName))
+            {
+                var fnFilter = firstName.Trim();
+                filtered = filtered.Where(c => (c.FirstName ?? "").Contains(fnFilter, StringComparison.CurrentCultureIgnoreCase));
+            }
+
+            if (!string.IsNullOrWhiteSpace(lastName))
+            {
+                var lnFilter = lastName.Trim();
+                filtered = filtered.Where(c => (c.LastName ?? "").Contains(lnFilter, StringComparison.CurrentCultureIgnoreCase));
+            }
+
+            if (!string.IsNullOrWhiteSpace(phoneNumber))
+            {
+                var pnRaw = phoneNumber.Trim();
+                var pnDigits = new string(pnRaw.Where(char.IsDigit).ToArray());
+                filtered = filtered.Where(c =>
+                {
+                    var pn = c.PhoneNumber ?? "";
+                    if (!string.IsNullOrEmpty(pnDigits))
+                    {
+                        var cDigits = new string(pn.Where(char.IsDigit).ToArray());
+                        if (cDigits.Contains(pnDigits, StringComparison.OrdinalIgnoreCase)) return true;
+                    }
+                    return pn.Contains(pnRaw, StringComparison.OrdinalIgnoreCase);
+                });
+            }
+
+            if (!string.IsNullOrWhiteSpace(email))
+            {
+                var emFilter = email.Trim();
+                filtered = filtered.Where(c => (c.Email ?? "").Contains(emFilter, StringComparison.OrdinalIgnoreCase));
+            }
+
+            var filteredList = filtered.ToList();
+            var totalCount = filteredList.Count;
+            var items = filteredList
                 .OrderBy(c => c.FirstName, StringComparer.CurrentCultureIgnoreCase)
                 .ThenBy(c => c.LastName, StringComparer.CurrentCultureIgnoreCase)
                 .Skip((page - 1) * pageSize)
@@ -233,7 +289,14 @@ public class ContactService : IContactService
         };
     }
 
-    public async Task<List<ContactResponseDto>> GetFilteredContactsForExportAsync(int userId, string? searchTerm, bool isFavoriteOnly)
+    public async Task<List<ContactResponseDto>> GetFilteredContactsForExportAsync(
+        int userId, 
+        string? searchTerm, 
+        bool isFavoriteOnly,
+        string? firstName = null,
+        string? lastName = null,
+        string? phoneNumber = null,
+        string? email = null)
     {
         var query = _context.Contacts.Where(c => c.UserId == userId);
 
@@ -256,46 +319,207 @@ public class ContactService : IContactService
             })
             .ToListAsync();
 
-        if (string.IsNullOrWhiteSpace(searchTerm))
+        bool hasSearch = !string.IsNullOrWhiteSpace(searchTerm) ||
+                         !string.IsNullOrWhiteSpace(firstName) ||
+                         !string.IsNullOrWhiteSpace(lastName) ||
+                         !string.IsNullOrWhiteSpace(phoneNumber) ||
+                         !string.IsNullOrWhiteSpace(email);
+
+        if (!hasSearch)
         {
             return allContacts;
         }
 
-        var tokens = searchTerm.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        var filtered = allContacts.AsEnumerable();
 
-        return allContacts.Where(c =>
+        if (!string.IsNullOrWhiteSpace(searchTerm))
         {
-            var fn = c.FirstName ?? "";
-            var ln = c.LastName ?? "";
-            var pn = c.PhoneNumber ?? "";
-            var em = c.Email ?? "";
+            var tokens = searchTerm.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            filtered = filtered.Where(c =>
+            {
+                var fn = c.FirstName ?? "";
+                var ln = c.LastName ?? "";
+                var pn = c.PhoneNumber ?? "";
+                var em = c.Email ?? "";
 
-            return tokens.All(token =>
-                fn.Contains(token, StringComparison.CurrentCultureIgnoreCase) ||
-                ln.Contains(token, StringComparison.CurrentCultureIgnoreCase) ||
-                pn.Contains(token, StringComparison.OrdinalIgnoreCase) ||
-                em.Contains(token, StringComparison.OrdinalIgnoreCase));
-        }).ToList();
-    }
-
-    public async Task<int> BulkCreateContactsAsync(int userId, List<ContactCreateDto> contacts)
-    {
-        if (contacts == null || contacts.Count == 0)
-        {
-            return 0;
+                return tokens.All(token =>
+                    fn.Contains(token, StringComparison.CurrentCultureIgnoreCase) ||
+                    ln.Contains(token, StringComparison.CurrentCultureIgnoreCase) ||
+                    pn.Contains(token, StringComparison.OrdinalIgnoreCase) ||
+                    em.Contains(token, StringComparison.OrdinalIgnoreCase));
+            });
         }
 
-        var entities = contacts.Select(dto => new Contact
+        if (!string.IsNullOrWhiteSpace(firstName))
         {
-            FirstName = dto.FirstName?.Trim() ?? string.Empty,
-            LastName = dto.LastName?.Trim() ?? string.Empty,
-            PhoneNumber = dto.PhoneNumber?.Trim() ?? string.Empty,
-            Email = string.IsNullOrWhiteSpace(dto.Email) ? null : dto.Email.Trim(),
-            IsFavorite = dto.IsFavorite,
-            UserId = userId
-        }).ToList();
+            var fnFilter = firstName.Trim();
+            filtered = filtered.Where(c => (c.FirstName ?? "").Contains(fnFilter, StringComparison.CurrentCultureIgnoreCase));
+        }
 
-        await _context.Contacts.AddRangeAsync(entities);
+        if (!string.IsNullOrWhiteSpace(lastName))
+        {
+            var lnFilter = lastName.Trim();
+            filtered = filtered.Where(c => (c.LastName ?? "").Contains(lnFilter, StringComparison.CurrentCultureIgnoreCase));
+        }
+
+        if (!string.IsNullOrWhiteSpace(phoneNumber))
+        {
+            var pnRaw = phoneNumber.Trim();
+            var pnDigits = new string(pnRaw.Where(char.IsDigit).ToArray());
+            filtered = filtered.Where(c =>
+            {
+                var pn = c.PhoneNumber ?? "";
+                if (!string.IsNullOrEmpty(pnDigits))
+                {
+                    var cDigits = new string(pn.Where(char.IsDigit).ToArray());
+                    if (cDigits.Contains(pnDigits, StringComparison.OrdinalIgnoreCase)) return true;
+                }
+                return pn.Contains(pnRaw, StringComparison.OrdinalIgnoreCase);
+            });
+        }
+
+        if (!string.IsNullOrWhiteSpace(email))
+        {
+            var emFilter = email.Trim();
+            filtered = filtered.Where(c => (c.Email ?? "").Contains(emFilter, StringComparison.OrdinalIgnoreCase));
+        }
+
+        return filtered.ToList();
+    }
+
+    private static string NormalizePhone(string? phone)
+    {
+        if (string.IsNullOrWhiteSpace(phone)) return string.Empty;
+        return new string(phone.Where(char.IsDigit).ToArray());
+    }
+
+    public async Task<BulkContactResponseDto> BulkCreateContactsAsync(int userId, BulkContactRequestDto request)
+    {
+        if (request == null || request.Contacts == null || request.Contacts.Count == 0)
+        {
+            return new BulkContactResponseDto
+            {
+                AddedCount = 0,
+                UpdatedCount = 0,
+                SkippedCount = 0,
+                Message = "Eklenecek kayıt bulunamadı."
+            };
+        }
+
+        var strategy = (request.DuplicateStrategy ?? "skip").Trim().ToLowerInvariant();
+
+        // Kullanıcının mevcut kişilerini çek (EF Core telefon ve e-postayı otomatik çözer)
+        var existingContacts = await _context.Contacts
+            .Where(c => c.UserId == userId)
+            .ToListAsync();
+
+        var existingPhoneMap = new Dictionary<string, Contact>();
+        foreach (var ec in existingContacts)
+        {
+            var norm = NormalizePhone(ec.PhoneNumber);
+            if (!string.IsNullOrEmpty(norm) && !existingPhoneMap.ContainsKey(norm))
+            {
+                existingPhoneMap[norm] = ec;
+            }
+        }
+
+        var addedCount = 0;
+        var updatedCount = 0;
+        var skippedCount = 0;
+        var newEntitiesToAdd = new List<Contact>();
+        var seenInBatch = new HashSet<string>();
+
+        foreach (var dto in request.Contacts)
+        {
+            var fn = dto.FirstName?.Trim() ?? string.Empty;
+            var ln = dto.LastName?.Trim() ?? string.Empty;
+            var rawPhone = dto.PhoneNumber?.Trim() ?? string.Empty;
+            var normPhone = NormalizePhone(rawPhone);
+            var email = string.IsNullOrWhiteSpace(dto.Email) ? null : dto.Email.Trim();
+
+            if (string.IsNullOrWhiteSpace(fn) || string.IsNullOrWhiteSpace(rawPhone))
+            {
+                skippedCount++;
+                continue;
+            }
+
+            bool isDuplicate = (!string.IsNullOrEmpty(normPhone) && existingPhoneMap.ContainsKey(normPhone))
+                               || (!string.IsNullOrEmpty(normPhone) && seenInBatch.Contains(normPhone));
+
+            if (isDuplicate)
+            {
+                if (strategy == "skip")
+                {
+                    skippedCount++;
+                    continue;
+                }
+                else if (strategy == "update")
+                {
+                    if (!string.IsNullOrEmpty(normPhone) && existingPhoneMap.TryGetValue(normPhone, out var existingEntity))
+                    {
+                        existingEntity.FirstName = fn;
+                        if (!string.IsNullOrWhiteSpace(ln)) existingEntity.LastName = ln;
+                        if (!string.IsNullOrWhiteSpace(email)) existingEntity.Email = email;
+                        updatedCount++;
+                    }
+                    else
+                    {
+                        var inBatchEntity = newEntitiesToAdd.FirstOrDefault(e => NormalizePhone(e.PhoneNumber) == normPhone);
+                        if (inBatchEntity != null)
+                        {
+                            inBatchEntity.FirstName = fn;
+                            if (!string.IsNullOrWhiteSpace(ln)) inBatchEntity.LastName = ln;
+                            if (!string.IsNullOrWhiteSpace(email)) inBatchEntity.Email = email;
+                            updatedCount++;
+                        }
+                        else
+                        {
+                            skippedCount++;
+                        }
+                    }
+                }
+                else // "allow"
+                {
+                    var entity = new Contact
+                    {
+                        FirstName = fn,
+                        LastName = ln,
+                        PhoneNumber = rawPhone,
+                        Email = email,
+                        IsFavorite = dto.IsFavorite,
+                        UserId = userId
+                    };
+                    newEntitiesToAdd.Add(entity);
+                    addedCount++;
+                    if (!string.IsNullOrEmpty(normPhone)) seenInBatch.Add(normPhone);
+                }
+            }
+            else
+            {
+                var entity = new Contact
+                {
+                    FirstName = fn,
+                    LastName = ln,
+                    PhoneNumber = rawPhone,
+                    Email = email,
+                    IsFavorite = dto.IsFavorite,
+                    UserId = userId
+                };
+                newEntitiesToAdd.Add(entity);
+                addedCount++;
+                if (!string.IsNullOrEmpty(normPhone))
+                {
+                    seenInBatch.Add(normPhone);
+                    existingPhoneMap[normPhone] = entity;
+                }
+            }
+        }
+
+        if (newEntitiesToAdd.Count > 0)
+        {
+            await _context.Contacts.AddRangeAsync(newEntitiesToAdd);
+        }
+
         await _context.SaveChangesAsync();
 
         var username = await GetUsernameAsync(userId);
@@ -305,10 +529,18 @@ public class ContactService : IContactService
             "CREATE",
             "Contact",
             null,
-            $"Excel ile toplu kayıt: {entities.Count} kişi rehbere aktarıldı."
+            $"Toplu aktarım tamamlandı: {addedCount} yeni eklendi, {updatedCount} güncellendi, {skippedCount} atlandı. (Strateji: {strategy})"
         );
 
-        return entities.Count;
+        return new BulkContactResponseDto
+        {
+            AddedCount = addedCount,
+            UpdatedCount = updatedCount,
+            SkippedCount = skippedCount,
+            Message = $"{addedCount} yeni kişi eklendi" +
+                      (updatedCount > 0 ? $", {updatedCount} kişi güncellendi" : "") +
+                      (skippedCount > 0 ? $", {skippedCount} yinelenen/geçersiz kayıt atlandı" : "") + "."
+        };
     }
 }
 

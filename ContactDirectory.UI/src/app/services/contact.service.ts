@@ -10,6 +10,21 @@ import { Contact, PagedResult } from '../core/models/contact.model';
  * Tüm API çağrıları burada merkezileştirilmiştir.
  * Auth interceptor token'ı otomatik olarak ekler.
  */
+export interface AdvancedSearchParams {
+  firstName?: string;
+  lastName?: string;
+  phoneNumber?: string;
+  email?: string;
+}
+
+export interface BulkImportResult {
+  addedCount: number;
+  updatedCount: number;
+  skippedCount: number;
+  totalProcessed: number;
+  message: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -19,7 +34,13 @@ export class ContactService {
   constructor(private http: HttpClient) {}
 
   /** Kullanıcının filtreli ve sayfalı kişilerini getir */
-  getContacts(searchTerm: string = '', isFavoriteOnly: boolean = false, page: number = 1, pageSize: number = 10): Observable<PagedResult<Contact>> {
+  getContacts(
+    searchTerm: string = '', 
+    isFavoriteOnly: boolean = false, 
+    page: number = 1, 
+    pageSize: number = 10,
+    advanced?: AdvancedSearchParams
+  ): Observable<PagedResult<Contact>> {
     let params = new HttpParams()
       .set('page', page.toString())
       .set('pageSize', pageSize.toString())
@@ -27,6 +48,18 @@ export class ContactService {
 
     if (searchTerm) {
       params = params.set('searchTerm', searchTerm);
+    }
+    if (advanced?.firstName) {
+      params = params.set('firstName', advanced.firstName);
+    }
+    if (advanced?.lastName) {
+      params = params.set('lastName', advanced.lastName);
+    }
+    if (advanced?.phoneNumber) {
+      params = params.set('phoneNumber', advanced.phoneNumber);
+    }
+    if (advanced?.email) {
+      params = params.set('email', advanced.email);
     }
 
     return this.http.get<PagedResult<Contact>>(this.apiUrl, { params });
@@ -58,16 +91,39 @@ export class ContactService {
   }
 
   /** Filtreye uyan tüm kişileri dışa aktarım için getir (Sayfalamasız) */
-  getExportContacts(searchTerm: string = '', isFavoriteOnly: boolean = false): Observable<Contact[]> {
+  getExportContacts(
+    searchTerm: string = '', 
+    isFavoriteOnly: boolean = false,
+    advanced?: AdvancedSearchParams
+  ): Observable<Contact[]> {
     let params = new HttpParams().set('isFavoriteOnly', isFavoriteOnly.toString());
     if (searchTerm) {
       params = params.set('searchTerm', searchTerm);
     }
+    if (advanced?.firstName) {
+      params = params.set('firstName', advanced.firstName);
+    }
+    if (advanced?.lastName) {
+      params = params.set('lastName', advanced.lastName);
+    }
+    if (advanced?.phoneNumber) {
+      params = params.set('phoneNumber', advanced.phoneNumber);
+    }
+    if (advanced?.email) {
+      params = params.set('email', advanced.email);
+    }
     return this.http.get<Contact[]>(`${this.apiUrl}/export-data`, { params });
   }
 
-  /** Excel veya toplu veri ile birden fazla kişiyi tek istekte ekle */
-  bulkAddContacts(contacts: Partial<Contact>[]): Observable<{ count: number, message: string }> {
-    return this.http.post<{ count: number, message: string }>(`${this.apiUrl}/bulk`, contacts);
+  /** Excel veya CSV toplu veri ile kişileri aktar (Yinelenen kayıt stratejisi ile) */
+  bulkAddContacts(
+    contacts: Partial<Contact>[], 
+    duplicateStrategy: 'skip' | 'update' | 'allow' = 'skip'
+  ): Observable<BulkImportResult> {
+    const payload = {
+      contacts,
+      duplicateStrategy
+    };
+    return this.http.post<BulkImportResult>(`${this.apiUrl}/bulk`, payload);
   }
 }
