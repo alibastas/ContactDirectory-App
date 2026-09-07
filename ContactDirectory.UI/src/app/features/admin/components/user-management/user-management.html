@@ -1,0 +1,86 @@
+<div class="admin-section-card">
+  <div class="section-header">
+    <div class="section-title-wrap">
+      <div class="section-icon">
+        <i class="pi pi-id-card"></i>
+      </div>
+      <div>
+        <h2>Kullanıcı Dağılımı ve Yetki Yönetimi</h2>
+        <p>Sistemdeki tüm kullanıcılar, rolleri ve tek tıkla yetki yönetimi</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-box" *ngIf="isLoading">
+    <i class="pi pi-spin pi-spinner"></i>
+    <span>Kullanıcı verileri yükleniyor...</span>
+  </div>
+
+  <!-- Users Table -->
+  <div class="table-responsive" *ngIf="!isLoading">
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th style="width: 80px;">ID</th>
+          <th>Kullanıcı</th>
+          <th>Yetki / Rol & Yönetim</th>
+          <th style="text-align: right; width: 180px;">Kayıtlı Kişi Sayısı</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let u of paginatedUsers()">
+          <td><strong>#{{ u.userId }}</strong></td>
+          <td>
+            <div class="user-cell">
+              <div class="user-avatar-mini">{{ u.username.charAt(0) }}</div>
+              <div class="user-name-col">
+                <strong>{{ u.username }}</strong>
+                <span class="you-badge" *ngIf="u.username.toLowerCase() === currentUsername().toLowerCase()">(Siz)</span>
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="role-action-wrap">
+              <span class="role-badge" [ngClass]="u.role === 'Admin' ? 'role-admin' : 'role-user'">
+                <i class="pi" [ngClass]="u.role === 'Admin' ? 'pi-shield' : 'pi-user'"></i>
+                {{ u.role }}
+              </span>
+
+              <!-- Toggle Role Button (only for other users) -->
+              <button 
+                *ngIf="u.username.toLowerCase() !== currentUsername().toLowerCase()"
+                class="btn-toggle-role" 
+                [class.btn-make-admin]="u.role !== 'Admin'"
+                [class.btn-make-user]="u.role === 'Admin'"
+                [disabled]="isUpdatingRoleId() === u.userId"
+                (click)="toggleUserRole(u)"
+                [title]="u.role === 'Admin' ? 'Kullanıcı yetkisine düşür' : 'Yönetici (Admin) yetkisi ver'">
+                <i class="pi pi-spin pi-spinner" *ngIf="isUpdatingRoleId() === u.userId"></i>
+                <i class="pi" [ngClass]="u.role === 'Admin' ? 'pi-user-minus' : 'pi-shield'" *ngIf="isUpdatingRoleId() !== u.userId"></i>
+                <span>{{ u.role === 'Admin' ? 'User Yap' : 'Admin Yap' }}</span>
+              </button>
+            </div>
+          </td>
+          <td style="text-align: right;">
+            <span class="contact-count-badge">
+              <i class="pi pi-user-plus" style="font-size: 0.75rem; color: var(--primary-500);"></i>
+              {{ u.contactCount | number }} kişi
+            </span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- PrimeNG Paginator (Rehberdeki Paging ile Birebir Aynı Tasarım) -->
+  <div class="paginator-wrapper" *ngIf="!isLoading && users.length > 0">
+    <p-paginator
+      [first]="firstRow()"
+      [rows]="pageSize()"
+      [totalRecords]="users.length"
+      [rowsPerPageOptions]="[5, 10, 20]"
+      (onPageChange)="onPageChange($event)">
+    </p-paginator>
+  </div>
+</div>

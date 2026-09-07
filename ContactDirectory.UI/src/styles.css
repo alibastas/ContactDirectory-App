@@ -99,6 +99,10 @@ html, body {
   line-height: 1.6;
 }
 
+body {
+  zoom: 0.82; /* %100 ölçekte kompakt, kurumsal ve geniş dashboard görünümü (Fotoğraf 2 ölçeği) */
+}
+
 /* --- Selection --- */
 ::selection {
   background-color: var(--primary-200);

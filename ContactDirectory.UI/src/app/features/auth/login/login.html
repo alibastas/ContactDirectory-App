@@ -1,8 +1,6 @@
 <div class="login-page">
-  <!-- Animated background orbs -->
-  <div class="bg-orb bg-orb-1"></div>
-  <div class="bg-orb bg-orb-2"></div>
-  <div class="bg-orb bg-orb-3"></div>
+  <!-- Subtle background ambient lighting -->
+  <div class="ambient-glow"></div>
 
   <div class="login-card">
     <!-- Logo / Brand -->
@@ -11,10 +9,30 @@
         <i class="pi pi-address-book"></i>
       </div>
       <h1>Kişi Rehberi</h1>
-      <p class="brand-subtitle">{{ isRegisterMode() ? 'Yeni hesap oluşturun' : 'Hesabınıza giriş yapın' }}</p>
+      <p class="brand-subtitle">{{ isRegisterMode() ? 'Yeni hesap oluşturarak hemen başlayın' : 'Hesabınıza erişmek için bilgilerinizi girin' }}</p>
     </div>
 
-    <!-- Toast Messages -->
+    <!-- Segmented Mode Switch (Giriş Yap / Kayıt Ol) -->
+    <div class="auth-segmented-tabs">
+      <button 
+        type="button" 
+        class="tab-btn" 
+        [class.active]="!isRegisterMode()" 
+        (click)="isRegisterMode() && toggleMode()">
+        <i class="pi pi-sign-in"></i>
+        <span>Giriş Yap</span>
+      </button>
+      <button 
+        type="button" 
+        class="tab-btn" 
+        [class.active]="isRegisterMode()" 
+        (click)="!isRegisterMode() && toggleMode()">
+        <i class="pi pi-user-plus"></i>
+        <span>Kayıt Ol</span>
+      </button>
+    </div>
+
+    <!-- Alert / Toast Messages -->
     <div class="toast toast-error" *ngIf="errorMessage()">
       <i class="pi pi-exclamation-circle"></i>
       <span>{{ errorMessage() }}</span>
@@ -26,46 +44,52 @@
 
     <!-- Form -->
     <form (ngSubmit)="onSubmit()" class="login-form">
-      <div class="input-group">
-        <div class="input-icon">
-          <i class="pi pi-user"></i>
+      <!-- Kullanıcı Adı -->
+      <div class="form-field">
+        <label class="field-label" for="login-username">Kullanıcı Adı</label>
+        <div class="input-wrapper" [class.has-error]="errorMessage()">
+          <i class="pi pi-user field-icon"></i>
+          <input
+            type="text"
+            id="login-username"
+            [ngModel]="username()"
+            (ngModelChange)="username.set($event); onInputChange()"
+            name="username"
+            required
+            placeholder="Kullanıcı adınızı girin"
+            autocomplete="username"
+          />
         </div>
-        <input
-          type="text"
-          id="login-username"
-          [ngModel]="username()"
-          (ngModelChange)="username.set($event); onInputChange()"
-          name="username"
-          required
-          [class.input-error]="errorMessage()"
-          placeholder="Kullanıcı adı"
-          autocomplete="username"
-        />
       </div>
 
-      <div class="input-group">
-        <div class="input-icon">
-          <i class="pi pi-lock"></i>
+      <!-- Şifre -->
+      <div class="form-field">
+        <div class="field-label-row">
+          <label class="field-label" for="login-password">Şifre</label>
+          <span class="field-hint" *ngIf="isRegisterMode()">En az 6 karakter</span>
         </div>
-        <input
-          [type]="showPassword() ? 'text' : 'password'"
-          id="login-password"
-          [ngModel]="password()"
-          (ngModelChange)="password.set($event); onInputChange()"
-          name="password"
-          required
-          [class.input-error]="errorMessage()"
-          placeholder="Şifre"
-          autocomplete="current-password"
-        />
-        <button type="button" class="toggle-password" (click)="togglePassword()" tabindex="-1">
-          <i class="pi" [ngClass]="showPassword() ? 'pi-eye-slash' : 'pi-eye'"></i>
-        </button>
+        <div class="input-wrapper" [class.has-error]="errorMessage()">
+          <i class="pi pi-lock field-icon"></i>
+          <input
+            [type]="showPassword() ? 'text' : 'password'"
+            id="login-password"
+            [ngModel]="password()"
+            (ngModelChange)="password.set($event); onInputChange()"
+            name="password"
+            required
+            placeholder="Şifrenizi girin"
+            autocomplete="current-password"
+            class="input-password"
+          />
+          <button type="button" class="btn-toggle-pw" (click)="togglePassword()" tabindex="-1" [title]="showPassword() ? 'Şifreyi gizle' : 'Şifreyi göster'">
+            <i class="pi" [ngClass]="showPassword() ? 'pi-eye-slash' : 'pi-eye'"></i>
+          </button>
+        </div>
       </div>
 
       <!-- Beni Hatırla Seçeneği (Sadece Giriş Yap Modunda) -->
-      <div class="remember-me-row" *ngIf="!isRegisterMode()">
-        <label class="remember-me-label" for="remember-me">
+      <div class="remember-row" *ngIf="!isRegisterMode()">
+        <label class="remember-label" for="remember-me">
           <input
             type="checkbox"
             id="remember-me"
@@ -75,6 +99,11 @@
           />
           <span>Beni Hatırla</span>
         </label>
+
+        <span class="security-badge" title="Tüm bağlantı TLS 256-bit ile korunmaktadır">
+          <i class="pi pi-shield"></i>
+          <span>Güvenli Oturum</span>
+        </span>
       </div>
 
       <!-- KVKK Onay Kutusu (Sadece Kayıt Ol Modunda) -->
@@ -92,28 +121,26 @@
         </div>
       </div>
 
+      <!-- Submit Butonu -->
       <button type="submit" class="btn-submit" [disabled]="isSubmitting() || (isRegisterMode() && !kvkkAccepted())">
-        <span *ngIf="!isSubmitting()">
-          <i class="pi" [ngClass]="isRegisterMode() ? 'pi-user-plus' : 'pi-sign-in'" style="margin-right: 8px;"></i>
-          {{ isRegisterMode() ? 'Kayıt Ol' : 'Giriş Yap' }}
+        <span *ngIf="!isSubmitting()" class="btn-content">
+          <span>{{ isRegisterMode() ? 'Hesap Oluştur' : 'Giriş Yap' }}</span>
+          <i class="pi" [ngClass]="isRegisterMode() ? 'pi-user-plus' : 'pi-arrow-right'"></i>
         </span>
         <span *ngIf="isSubmitting()" class="loading-spinner">
           <i class="pi pi-spin pi-spinner"></i>
-          İşleniyor...
+          <span>İşlem yapılıyor...</span>
         </span>
       </button>
     </form>
 
-    <!-- Divider -->
-    <div class="divider">
-      <span>veya</span>
+    <!-- Footer Switch Link -->
+    <div class="auth-switch-footer">
+      <span>{{ isRegisterMode() ? 'Zaten bir hesabınız var mı?' : 'Henüz bir hesabınız yok mu?' }}</span>
+      <button type="button" class="btn-link-switch" (click)="toggleMode()">
+        {{ isRegisterMode() ? 'Giriş Yapın' : 'Kayıt Olun' }}
+      </button>
     </div>
-
-    <!-- Toggle Mode -->
-    <button class="btn-toggle" (click)="toggleMode()">
-      <i class="pi" [ngClass]="isRegisterMode() ? 'pi-sign-in' : 'pi-user-plus'" style="margin-right: 6px;"></i>
-      {{ isRegisterMode() ? 'Zaten hesabın var mı? Giriş yap' : 'Hesabın yok mu? Kayıt ol' }}
-    </button>
   </div>
 
   <!-- Footer -->

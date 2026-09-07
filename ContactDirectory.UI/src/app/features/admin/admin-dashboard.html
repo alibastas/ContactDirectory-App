@@ -23,7 +23,7 @@
     <!-- Stat Cards Row -->
     <div class="metrics-grid">
       <!-- Total Users -->
-      <div class="metric-card metric-users">
+      <div class="metric-card metric-users" (click)="setActiveTab('users')" style="cursor: pointer;" title="Kullanıcı Yönetimine Geç">
         <div class="metric-icon">
           <i class="pi pi-users"></i>
         </div>
@@ -47,7 +47,7 @@
       </div>
 
       <!-- Total Activity Logs -->
-      <div class="metric-card metric-logs">
+      <div class="metric-card metric-logs" (click)="setActiveTab('logs')" style="cursor: pointer;" title="İşlem Geçmişine Geç">
         <div class="metric-icon">
           <i class="pi pi-history"></i>
         </div>
@@ -59,192 +59,45 @@
       </div>
     </div>
 
-    <!-- Section 1: Registered Users, Roles & Visual Distribution -->
-    <div class="admin-section-card">
-      <div class="section-header">
-        <div class="section-title-wrap">
-          <div class="section-icon">
-            <i class="pi pi-id-card"></i>
-          </div>
-          <div>
-            <h2>Kullanıcı Dağılımı ve Yetki Yönetimi</h2>
-            <p>Sistemdeki tüm kullanıcılar, rolleri ve tek tıkla yetki yönetimi</p>
-          </div>
-        </div>
-      </div>
+    <!-- Segmented Tab Navigation Bar -->
+    <div class="admin-tab-bar">
+      <button 
+        type="button"
+        class="admin-tab-btn" 
+        [class.active]="activeTab() === 'users'" 
+        (click)="setActiveTab('users')">
+        <i class="pi pi-id-card"></i>
+        <span>Kullanıcı & Yetki Yönetimi</span>
+        <span class="tab-badge" *ngIf="stats()?.totalUsers !== undefined">{{ stats()?.totalUsers }}</span>
+      </button>
 
-      <!-- Users Loading State -->
-      <div class="loading-box" *ngIf="isLoadingStats()">
-        <i class="pi pi-spin pi-spinner"></i>
-        <span>Kullanıcı verileri yükleniyor...</span>
-      </div>
-
-      <!-- Users Table -->
-      <div class="table-responsive" *ngIf="!isLoadingStats()">
-        <table class="admin-table">
-          <thead>
-            <tr>
-              <th style="width: 80px;">ID</th>
-              <th>Kullanıcı</th>
-              <th>Yetki / Rol & Yönetim</th>
-              <th style="text-align: right; width: 180px;">Kayıtlı Kişi Sayısı</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let u of stats()?.userSummaries">
-              <td><strong>#{{ u.userId }}</strong></td>
-              <td>
-                <div class="user-cell">
-                  <div class="user-avatar-mini">{{ u.username.charAt(0) }}</div>
-                  <div class="user-name-col">
-                    <strong>{{ u.username }}</strong>
-                    <span class="you-badge" *ngIf="u.username.toLowerCase() === currentUsername().toLowerCase()">(Siz)</span>
-                  </div>
-                </div>
-              </td>
-              <td>
-                <div class="role-action-wrap">
-                  <span class="role-badge" [ngClass]="u.role === 'Admin' ? 'role-admin' : 'role-user'">
-                    <i class="pi" [ngClass]="u.role === 'Admin' ? 'pi-shield' : 'pi-user'"></i>
-                    {{ u.role }}
-                  </span>
-
-                  <!-- Toggle Role Button (only for other users) -->
-                  <button 
-                    *ngIf="u.username.toLowerCase() !== currentUsername().toLowerCase()"
-                    class="btn-toggle-role" 
-                    [class.btn-make-admin]="u.role !== 'Admin'"
-                    [class.btn-make-user]="u.role === 'Admin'"
-                    [disabled]="isUpdatingRoleId() === u.userId"
-                    (click)="toggleUserRole(u)"
-                    [title]="u.role === 'Admin' ? 'Kullanıcı yetkisine düşür' : 'Yönetici (Admin) yetkisi ver'">
-                    <i class="pi pi-spin pi-spinner" *ngIf="isUpdatingRoleId() === u.userId"></i>
-                    <i class="pi" [ngClass]="u.role === 'Admin' ? 'pi-user-minus' : 'pi-shield'" *ngIf="isUpdatingRoleId() !== u.userId"></i>
-                    <span>{{ u.role === 'Admin' ? 'User Yap' : 'Admin Yap' }}</span>
-                  </button>
-                </div>
-              </td>
-              <td style="text-align: right;">
-                <span class="contact-count-badge">
-                  <i class="pi pi-user-plus" style="font-size: 0.75rem; color: var(--primary-500);"></i>
-                  {{ u.contactCount | number }} kişi
-                </span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      <button 
+        type="button"
+        class="admin-tab-btn" 
+        [class.active]="activeTab() === 'logs'" 
+        (click)="setActiveTab('logs')">
+        <i class="pi pi-list-check"></i>
+        <span>İşlem Geçmişi (Audit Logs)</span>
+        <span class="tab-badge" *ngIf="stats()?.totalLogs !== undefined">{{ stats()?.totalLogs }}</span>
+      </button>
     </div>
 
-    <!-- Section 2: Live Activity Logs (Audit Logs) -->
-    <div class="admin-section-card">
-      <div class="section-header">
-        <div class="section-title-wrap">
-          <div class="section-icon" style="background: #ecfdf5; color: #059669;">
-            <i class="pi pi-list-check"></i>
-          </div>
-          <div>
-            <h2>İşlem Geçmişi (Audit Logs)</h2>
-            <p>Kullanıcıların gerçekleştirdiği ekleme, güncelleme ve silme hareketleri</p>
-          </div>
-        </div>
+    <!-- Active Tab Component Views -->
+    <div class="tab-view-container">
+      <!-- Tab 1: User Management Component -->
+      <app-user-management 
+        *ngIf="activeTab() === 'users'"
+        [users]="stats()?.userSummaries || []"
+        [isLoading]="isLoadingStats()"
+        (roleChanged)="loadStats()">
+      </app-user-management>
 
-        <!-- Controls Toolbar -->
-        <div class="toolbar-controls">
-          <!-- Action Filter Buttons -->
-          <div class="filter-btn-group">
-            <button class="filter-btn" [class.active]="selectedActionFilter() === 'ALL'" (click)="setActionFilter('ALL')">
-              Tümü
-            </button>
-            <button class="filter-btn" [class.active]="selectedActionFilter() === 'CREATE'" (click)="setActionFilter('CREATE')">
-              Ekleme
-            </button>
-            <button class="filter-btn" [class.active]="selectedActionFilter() === 'UPDATE'" (click)="setActionFilter('UPDATE')">
-              Güncelleme
-            </button>
-            <button class="filter-btn" [class.active]="selectedActionFilter() === 'DELETE'" (click)="setActionFilter('DELETE')">
-              Silme
-            </button>
-          </div>
-
-          <!-- User Filter Dropdown -->
-          <div class="user-filter-select-wrap">
-            <i class="pi pi-user select-icon"></i>
-            <select class="user-filter-select" [value]="selectedUserFilter()" (change)="onUserFilterChange($event)">
-              <option value="ALL">👤 Tüm Kullanıcılar</option>
-              <option *ngFor="let u of stats()?.userSummaries" [value]="u.username">
-                {{ u.username }} ({{ u.role }})
-              </option>
-            </select>
-          </div>
-
-          <!-- Quick Search -->
-          <div class="search-input-wrap">
-            <i class="pi pi-search"></i>
-            <input 
-              type="text" 
-              class="search-input" 
-              placeholder="Loglarda ara..." 
-              [value]="searchQuery()" 
-              (input)="onSearchChange($event)" />
-          </div>
-
-          <!-- Refresh Button -->
-          <button class="btn-refresh" (click)="loadAll()" title="Tüm Verileri Yenile">
-            <i class="pi pi-refresh" [class.spinning]="isLoadingLogs() || isLoadingStats()"></i>
-            <span>Yenile</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- Logs Loading State -->
-      <div class="loading-box" *ngIf="isLoadingLogs()">
-        <i class="pi pi-spin pi-spinner"></i>
-        <span>İşlem kayıtları yükleniyor...</span>
-      </div>
-
-      <!-- Empty State -->
-      <div class="empty-state" *ngIf="!isLoadingLogs() && filteredLogs().length === 0">
-        <i class="pi pi-inbox"></i>
-        <p>Arama veya filtre kriterlerinize uygun işlem kaydı bulunamadı.</p>
-      </div>
-
-      <!-- Logs Table -->
-      <div class="table-responsive" *ngIf="!isLoadingLogs() && filteredLogs().length > 0">
-        <table class="admin-table">
-          <thead>
-            <tr>
-              <th style="width: 140px;">İşlem Türü</th>
-              <th style="width: 160px;">Kullanıcı</th>
-              <th>İşlem Detayı</th>
-              <th style="width: 200px; text-align: right;">Zaman</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let log of filteredLogs()">
-              <td>
-                <span class="action-tag" [ngClass]="getActionClass(log.action)">
-                  <i [ngClass]="getActionIcon(log.action)"></i>
-                  {{ getActionText(log.action) }}
-                </span>
-              </td>
-              <td>
-                <div class="user-cell">
-                  <i class="pi pi-user" style="color: var(--text-muted); font-size: 0.85rem;"></i>
-                  <strong>{{ log.username }}</strong>
-                </div>
-              </td>
-              <td>
-                <span>{{ log.details || '-' }}</span>
-              </td>
-              <td class="time-cell" style="text-align: right;" [title]="formatDate(log.timestamp)">
-                <i class="pi pi-clock" style="font-size: 0.75rem; margin-right: 0.35rem; color: var(--text-muted);"></i>
-                <span class="relative-time-text">{{ getRelativeTime(log.timestamp) }}</span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      <!-- Tab 2: Audit Logs Component -->
+      <app-audit-logs 
+        *ngIf="activeTab() === 'logs'"
+        [users]="stats()?.userSummaries || []"
+        (refreshRequested)="loadStats()">
+      </app-audit-logs>
     </div>
   </main>
 </div>
