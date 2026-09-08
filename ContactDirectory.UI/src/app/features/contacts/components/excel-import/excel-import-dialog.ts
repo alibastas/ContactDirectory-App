@@ -1,6 +1,7 @@
 import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DialogModule } from 'primeng/dialog';
+import { ButtonModule } from 'primeng/button';
 import { ExcelService, ParseExcelResult, ParsedContact } from '../../../../services/excel.service';
 import { ContactService } from '../../../../services/contact.service';
 import { MessageService } from 'primeng/api';
@@ -8,7 +9,7 @@ import { MessageService } from 'primeng/api';
 @Component({
   selector: 'app-excel-import-dialog',
   standalone: true,
-  imports: [CommonModule, DialogModule],
+  imports: [CommonModule, DialogModule, ButtonModule],
   templateUrl: './excel-import-dialog.html',
   styleUrls: ['./excel-import-dialog.css'],
   changeDetection: ChangeDetectionStrategy.OnPush

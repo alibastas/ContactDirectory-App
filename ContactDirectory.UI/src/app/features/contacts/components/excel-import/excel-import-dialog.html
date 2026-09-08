@@ -1,22 +1,39 @@
 <p-dialog 
-  [header]="dialogTitle" 
   [visible]="visible" 
   (visibleChange)="onVisibleChange($event)" 
   [modal]="true" 
   [style]="{ width: '680px', maxWidth: '95vw' }"
+  [breakpoints]="{ '768px': '95vw' }"
   [draggable]="false" 
   [resizable]="false" 
+  [dismissableMask]="true"
   styleClass="excel-import-dialog">
 
+  <!-- Custom Header -->
+  <ng-template pTemplate="header">
+    <div class="dialog-header-custom">
+      <div class="header-icon-badge" [class.csv-badge]="importType === 'csv'">
+        <i [class]="headerIcon"></i>
+      </div>
+      <div class="header-text">
+        <h3 class="dialog-title">{{ dialogTitle }}</h3>
+        <p class="dialog-subtitle">{{ introDescription }}</p>
+      </div>
+    </div>
+  </ng-template>
+
   <div class="excel-dialog-content">
-    <!-- Intro Header & Sample Template Download -->
+    <!-- Intro Subheader & Sample Template Download -->
     <div class="dialog-intro">
-      <div class="intro-text">
-        <h3>
+      <div class="intro-badge-row">
+        <span class="file-type-pill" [class.csv-pill]="importType === 'csv'">
           <i [class]="headerIcon"></i>
-          {{ introTitle }}
-        </h3>
-        <p>{{ introDescription }}</p>
+          <span>{{ importType === 'csv' ? 'CSV Formatı (.csv)' : 'Excel Formatı (.xlsx, .xls)' }}</span>
+        </span>
+        <span class="max-size-pill">
+          <i class="pi pi-info-circle"></i>
+          <span>Maksimum 5 MB</span>
+        </span>
       </div>
       <button class="btn-sample-template" (click)="downloadTemplate()" type="button" [title]="templateBtnLabel">
         <i class="pi pi-download"></i>
@@ -40,92 +57,101 @@
         style="display: none;" 
         (change)="onFileSelected($event)" />
       
-      <div class="dropzone-icon">
-        <i class="pi pi-upload"></i>
+      <div class="dropzone-icon" [class.csv-icon]="importType === 'csv'">
+        <i class="pi pi-cloud-upload"></i>
       </div>
-      <span class="dropzone-title">{{ dropzoneTitle }}</span>
-      <span class="dropzone-hint">{{ dropzoneHint }}</span>
+      <div class="dropzone-text-group">
+        <span class="dropzone-title">{{ dropzoneTitle }}</span>
+        <span class="dropzone-hint">{{ dropzoneHint }}</span>
+      </div>
     </div>
 
     <!-- Error message if any -->
-    <div class="toast toast-error" *ngIf="errorMessage()" style="margin: 0;">
+    <div class="error-banner" *ngIf="errorMessage()">
       <i class="pi pi-exclamation-circle"></i>
       <span>{{ errorMessage() }}</span>
     </div>
 
-    <!-- Selected File & Parsing State -->
+    <!-- Selected File Card -->
     <div *ngIf="selectedFile()" class="selected-file-card">
       <div class="file-info">
-        <i [class]="headerIcon"></i>
-        <div>
+        <div class="file-icon-box" [class.csv-icon]="importType === 'csv'">
+          <i [class]="headerIcon"></i>
+        </div>
+        <div class="file-meta">
           <span class="file-name">{{ selectedFile()?.name }}</span>
-          <span class="file-size">({{ formatFileSize(selectedFile()?.size || 0) }})</span>
+          <span class="file-size">{{ formatFileSize(selectedFile()?.size || 0) }}</span>
         </div>
       </div>
-      <button class="btn-remove-file" (click)="removeFile()" type="button" title="Dosyayı Kaldır">
-        <i class="pi pi-times"></i>
+      <button class="btn-remove-file" (click)="removeFile()" type="button" title="Dosyayı Değiştir">
+        <i class="pi pi-trash"></i>
       </button>
     </div>
 
     <!-- Parsing Loading Spinner -->
-    <div *ngIf="isParsing()" class="loading-box" style="padding: 1.5rem;">
-      <i class="pi pi-spin pi-spinner"></i>
-      <span>{{ parsingText }}</span>
+    <div *ngIf="isParsing()" class="loading-card">
+      <div class="loading-spinner-ring"></div>
+      <span class="loading-text">{{ parsingText }}</span>
     </div>
 
     <!-- Parse Results: Summary Badges & Preview Table -->
-    <div *ngIf="parseResult() && !isParsing()">
+    <div *ngIf="parseResult() && !isParsing()" class="results-container">
       <!-- Summary Badges -->
-      <div class="summary-badges-row" style="margin-bottom: 0.85rem;">
+      <div class="summary-badges-row">
         <span class="summary-badge badge-valid">
           <i class="pi pi-check-circle"></i>
-          {{ parseResult()?.validContacts?.length || 0 }} Geçerli Kişi
+          <span>{{ parseResult()?.validContacts?.length || 0 }} Geçerli Kişi</span>
         </span>
         <span class="summary-badge badge-duplicate" *ngIf="fileDuplicateCount() > 0">
           <i class="pi pi-copy"></i>
-          {{ fileDuplicateCount() }} Yinelenen Numara
+          <span>{{ fileDuplicateCount() }} Yinelenen Numara</span>
         </span>
         <span class="summary-badge badge-invalid" *ngIf="(parseResult()?.invalidContacts?.length || 0) > 0">
           <i class="pi pi-exclamation-triangle"></i>
-          {{ parseResult()?.invalidContacts?.length }} Hatalı/Eksik Satır
+          <span>{{ parseResult()?.invalidContacts?.length }} Hatalı Satır</span>
         </span>
         <span class="summary-badge badge-total">
-          Toplam {{ parseResult()?.totalRows || 0 }} Satır
+          <i class="pi pi-list"></i>
+          <span>Toplam {{ parseResult()?.totalRows || 0 }} Satır</span>
         </span>
       </div>
 
       <!-- Preview Table -->
-      <div class="preview-container" *ngIf="(parseResult()?.validContacts?.length || 0) > 0">
-        <table class="preview-table">
-          <thead>
-            <tr>
-              <th>Ad</th>
-              <th>Soyad</th>
-              <th>Telefon</th>
-              <th>E-posta</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let c of parseResult()?.validContacts?.slice(0, 50)">
-              <td><strong>{{ c.firstName }}</strong></td>
-              <td>{{ c.lastName || '-' }}</td>
-              <td>{{ c.phoneNumber }}</td>
-              <td>{{ c.email || '-' }}</td>
-            </tr>
-          </tbody>
-        </table>
+      <div class="preview-wrapper" *ngIf="(parseResult()?.validContacts?.length || 0) > 0">
+        <div class="preview-scroll">
+          <table class="preview-table">
+            <thead>
+              <tr>
+                <th>Ad</th>
+                <th>Soyad</th>
+                <th>Telefon</th>
+                <th>E-posta</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let c of parseResult()?.validContacts?.slice(0, 50)">
+                <td><strong>{{ c.firstName }}</strong></td>
+                <td>{{ c.lastName || '—' }}</td>
+                <td><span class="phone-code">{{ c.phoneNumber }}</span></td>
+                <td>{{ c.email || '—' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
-      <small *ngIf="(parseResult()?.validContacts?.length || 0) > 50" style="color: var(--text-muted); display: block; margin-top: 0.4rem;">
+      <small *ngIf="(parseResult()?.validContacts?.length || 0) > 50" class="preview-notice">
         * İlk 50 kayıt önizlemede gösteriliyor (Toplam {{ parseResult()?.validContacts?.length }} kişi aktarılacak).
       </small>
 
       <!-- Duplicate Strategy Options -->
       <div class="duplicate-strategy-card" *ngIf="(parseResult()?.validContacts?.length || 0) > 0">
         <div class="strategy-header">
-          <i class="pi pi-shield"></i>
+          <div class="strategy-icon-box">
+            <i class="pi pi-shield"></i>
+          </div>
           <div>
             <h4>Aynı Kişi / Yinelenen Numara Yönetimi</h4>
-            <p>Rehberinizde veya dosya içerisinde zaten kayıtlı olan telefon numaraları için tercihiniz:</p>
+            <p>Rehberinizde veya dosya içerisinde zaten kayıtlı olan numaralar için tercihiniz:</p>
           </div>
         </div>
 
@@ -169,21 +195,26 @@
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- Dialog Footer Actions -->
-    <div class="dialog-footer">
-      <button class="btn-cancel" (click)="onVisibleChange(false)" type="button">
-        Vazgeç
+  <!-- Dialog Footer Actions -->
+  <ng-template pTemplate="footer">
+    <div class="dialog-footer-custom">
+      <button 
+        type="button" 
+        class="btn-cancel"
+        (click)="onVisibleChange(false)">
+        <i class="pi pi-times"></i>
+        <span>Vazgeç</span>
       </button>
       <button 
-        class="btn-confirm-import" 
+        type="button" 
         [disabled]="!parseResult() || (parseResult()?.validContacts?.length || 0) === 0 || isUploading()"
-        (click)="confirmImport()" 
-        type="button">
-        <i class="pi pi-spin pi-spinner" *ngIf="isUploading()"></i>
-        <i class="pi pi-check" *ngIf="!isUploading()"></i>
+        class="btn-confirm-import" 
+        (click)="confirmImport()">
+        <i [class]="isUploading() ? 'pi pi-spin pi-spinner' : 'pi pi-check'"></i>
         <span>Rehbere Aktar ({{ parseResult()?.validContacts?.length || 0 }} Kişi)</span>
       </button>
     </div>
-  </div>
+  </ng-template>
 </p-dialog>

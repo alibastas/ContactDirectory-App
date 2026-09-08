@@ -12,47 +12,59 @@ import { AdvancedSearchParams } from '../../../../services/contact.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="search-wrapper">
-      <!-- Ana Arama Çubuğu ve Butonlar -->
-      <div class="search-container">
-        <div class="filter-chips">
-          <button class="chip" [class.active]="activeFilter === 'all'" (click)="onFilterChange('all')">Tümü</button>
-          <button class="chip" [class.active]="activeFilter === 'favorites'" (click)="onFilterChange('favorites')">
-            <i class="pi pi-star-fill" style="font-size: 0.7rem; margin-right: 4px;"></i>Favoriler
-          </button>
+      <!-- Üst Bar: Sol Başlık + Sağ Filtre & Arama Araçları -->
+      <div class="search-top-bar">
+        <div class="title-container">
+          <ng-content select="[title]"></ng-content>
         </div>
 
-        <div class="search-box">
-          <i class="pi pi-search search-icon"></i>
-          <input 
-            type="text" 
-            [ngModel]="searchQuery" 
-            (ngModelChange)="onSearchChange($event)"
-            placeholder="Hızlı ara (isim, tel, e-posta)..." 
-            class="search-input" />
-          <button class="search-clear" *ngIf="searchQuery" (click)="onSearchChange('')" title="Temizle">
-            <i class="pi pi-times"></i>
+        <!-- Ana Arama Çubuğu ve Butonlar -->
+        <div class="search-container">
+          <div class="filter-chips">
+            <button class="chip" [class.active]="activeFilter === 'all'" (click)="onFilterChange('all')">Tümü</button>
+            <button class="chip" [class.active]="activeFilter === 'favorites'" (click)="onFilterChange('favorites')">
+              <i class="pi pi-star-fill" style="font-size: 0.7rem; margin-right: 4px;"></i>Favoriler
+            </button>
+          </div>
+
+          <div class="search-box">
+            <i class="pi pi-search search-icon"></i>
+            <input 
+              type="text" 
+              [ngModel]="searchQuery" 
+              (ngModelChange)="onSearchChange($event)"
+              placeholder="Hızlı ara (isim, tel, e-posta)..." 
+              class="search-input" />
+            <button class="search-clear" *ngIf="searchQuery" (click)="onSearchChange('')" title="Temizle">
+              <i class="pi pi-times"></i>
+            </button>
+          </div>
+
+          <!-- Detaylı Arama Aç/Kapat Butonu -->
+          <button 
+            type="button" 
+            class="btn-toggle-advanced" 
+            [class.active]="isAdvancedOpen() || hasAdvancedFilters"
+            (click)="toggleAdvanced()" 
+            title="Gelişmiş Arama Seçenekleri">
+            <i class="pi pi-sliders-h"></i>
+            <span>Detaylı Arama</span>
+            <span class="active-badge-dot" *ngIf="hasAdvancedFilters"></span>
           </button>
         </div>
-
-        <!-- Detaylı Arama Aç/Kapat Butonu -->
-        <button 
-          type="button" 
-          class="btn-toggle-advanced" 
-          [class.active]="isAdvancedOpen() || hasAdvancedFilters"
-          (click)="toggleAdvanced()" 
-          title="Gelişmiş Arama Seçenekleri">
-          <i class="pi pi-sliders-h"></i>
-          <span>Detaylı Arama</span>
-          <span class="active-badge-dot" *ngIf="hasAdvancedFilters"></span>
-        </button>
       </div>
 
-      <!-- Detaylı Arama Paneli (Açılır/Kapanır) -->
+      <!-- Detaylı Arama Paneli (TAM GENİŞLİK - KARTIN TÜM ENİNE YAYILIR) -->
       <div class="advanced-panel" *ngIf="isAdvancedOpen()">
         <div class="advanced-header">
           <div class="advanced-title">
-            <i class="pi pi-filter"></i>
-            <span>Detaylı Arama Kriterleri</span>
+            <div class="advanced-icon-box">
+              <i class="pi pi-sliders-h"></i>
+            </div>
+            <div>
+              <h4>Detaylı Arama Kriterleri</h4>
+              <p class="advanced-subtitle">Kriterlerinize göre rehber kayıtlarını anlık olarak filtreleyin</p>
+            </div>
           </div>
           <button 
             type="button" 
@@ -120,19 +132,36 @@ import { AdvancedSearchParams } from '../../../../services/contact.service';
     .search-wrapper {
       display: flex;
       flex-direction: column;
-      gap: 0.75rem;
+      gap: 1.25rem;
       width: 100%;
     }
+
+    .search-top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+      width: 100%;
+    }
+
+    .title-container {
+      display: flex;
+      align-items: center;
+    }
+
     .search-container {
       display: flex;
       gap: 0.75rem;
       align-items: center;
       flex-wrap: wrap;
     }
+
     .filter-chips {
       display: flex;
       gap: 0.4rem;
     }
+
     .chip {
       padding: 0.5rem 0.85rem;
       border-radius: var(--radius-full);
@@ -156,9 +185,10 @@ import { AdvancedSearchParams } from '../../../../services/contact.service';
       color: var(--primary-700);
       border-color: var(--primary-200);
     }
+
     .search-box {
       position: relative;
-      width: 280px;
+      width: 260px;
     }
     .search-icon {
       position: absolute;
@@ -236,20 +266,22 @@ import { AdvancedSearchParams } from '../../../../services/contact.service';
       display: inline-block;
     }
 
-    /* Detaylı Arama Kartı */
+    /* Detaylı Arama Kartı (Tam Genişlik) */
     .advanced-panel {
-      background: var(--surface-ground);
+      background: #f8fafc;
       border: 1px solid var(--surface-border);
       border-radius: var(--radius-lg);
-      padding: 1rem 1.25rem;
+      padding: 1.25rem 1.5rem;
       display: flex;
       flex-direction: column;
-      gap: 0.85rem;
-      animation: slideDown 0.2s ease-out;
+      gap: 1rem;
+      width: 100%;
+      box-sizing: border-box;
+      animation: slideDown 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     @keyframes slideDown {
-      from { opacity: 0; transform: translateY(-6px); }
+      from { opacity: 0; transform: translateY(-8px); }
       to { opacity: 1; transform: translateY(0); }
     }
 
@@ -257,102 +289,138 @@ import { AdvancedSearchParams } from '../../../../services/contact.service';
       display: flex;
       justify-content: space-between;
       align-items: center;
+      flex-wrap: wrap;
+      gap: 0.5rem;
     }
 
     .advanced-title {
-      font-size: 0.8125rem;
-      font-weight: 700;
-      color: var(--text-primary);
       display: flex;
       align-items: center;
-      gap: 0.4rem;
+      gap: 0.75rem;
     }
 
-    .advanced-title i {
+    .advanced-icon-box {
+      width: 34px;
+      height: 34px;
+      border-radius: var(--radius-md);
+      background: #e0e7ff;
       color: var(--primary-600);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.95rem;
+    }
+
+    .advanced-title h4 {
+      font-size: 0.9375rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin: 0;
+    }
+
+    .advanced-subtitle {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin: 0.15rem 0 0 0;
     }
 
     .btn-clear-advanced {
       display: inline-flex;
       align-items: center;
       gap: 0.35rem;
-      background: none;
-      border: none;
+      background: #fef2f2;
+      border: 1px solid #fecaca;
       color: var(--danger-600);
       font-size: 0.75rem;
       font-weight: 600;
       cursor: pointer;
-      padding: 0.25rem 0.5rem;
-      border-radius: var(--radius-sm);
-      transition: background var(--transition-fast);
+      padding: 0.35rem 0.65rem;
+      border-radius: var(--radius-md);
+      transition: all var(--transition-fast);
     }
 
     .btn-clear-advanced:hover {
-      background: var(--danger-50);
+      background: #fee2e2;
+      color: var(--danger-700);
     }
 
     .advanced-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 0.75rem;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      width: 100%;
+    }
+
+    @media (max-width: 1100px) {
+      .advanced-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 640px) {
+      .advanced-grid {
+        grid-template-columns: 1fr;
+      }
     }
 
     .advanced-field {
       display: flex;
       flex-direction: column;
-      gap: 0.3rem;
+      gap: 0.35rem;
     }
 
     .advanced-field label {
-      font-size: 0.75rem;
+      font-size: 0.78rem;
       font-weight: 600;
       color: var(--text-secondary);
       display: flex;
       align-items: center;
-      gap: 0.3rem;
+      gap: 0.35rem;
     }
 
     .field-restriction {
-      font-size: 0.6875rem;
+      font-size: 0.7rem;
       font-weight: 500;
       color: var(--text-muted);
       opacity: 0.85;
     }
 
     .advanced-field label i {
-      font-size: 0.75rem;
-      color: var(--text-muted);
+      font-size: 0.8rem;
+      color: var(--primary-500);
     }
 
     .field-input {
       width: 100%;
-      padding: 0.5rem 0.75rem;
+      padding: 0.55rem 0.85rem;
       border: 1px solid var(--surface-border);
       border-radius: var(--radius-md);
-      font-size: 0.8125rem;
-      background: var(--surface-card);
+      font-size: 0.85rem;
+      background: #ffffff;
       color: var(--text-primary);
       transition: all var(--transition-fast);
+      box-sizing: border-box;
     }
 
     .field-input:focus {
       outline: none;
-      border-color: var(--primary-400);
-      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+      border-color: var(--primary-500);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
     }
 
     .advanced-hint {
-      font-size: 0.75rem;
+      font-size: 0.78rem;
       color: var(--text-muted);
       display: flex;
       align-items: center;
-      gap: 0.4rem;
-      padding-top: 0.25rem;
+      gap: 0.45rem;
+      padding-top: 0.5rem;
       border-top: 1px solid var(--surface-border-light);
     }
 
     .advanced-hint i {
       color: var(--primary-500);
+      font-size: 0.85rem;
     }
   `]
 })

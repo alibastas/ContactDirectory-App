@@ -219,6 +219,13 @@ public class ContactService : IContactService
             return false;
         }
 
+        var isFavoriteChanged = existing.IsFavorite != dto.IsFavorite;
+        var onlyFavoriteChanged = isFavoriteChanged &&
+            string.Equals(existing.FirstName?.Trim(), dto.FirstName?.Trim(), StringComparison.OrdinalIgnoreCase) &&
+            string.Equals(existing.LastName?.Trim(), dto.LastName?.Trim(), StringComparison.OrdinalIgnoreCase) &&
+            string.Equals(existing.PhoneNumber?.Trim(), dto.PhoneNumber?.Trim(), StringComparison.Ordinal) &&
+            string.Equals(existing.Email?.Trim() ?? "", dto.Email?.Trim() ?? "", StringComparison.OrdinalIgnoreCase);
+
         existing.FirstName = dto.FirstName;
         existing.LastName = dto.LastName;
         existing.PhoneNumber = dto.PhoneNumber;
@@ -228,13 +235,26 @@ public class ContactService : IContactService
         await _context.SaveChangesAsync();
 
         var username = await GetUsernameAsync(userId);
+
+        string logDetails;
+        if (onlyFavoriteChanged)
+        {
+            logDetails = dto.IsFavorite
+                ? $"Kişi favorilere eklendi: {existing.FirstName} {existing.LastName}"
+                : $"Kişi favorilerden çıkarıldı: {existing.FirstName} {existing.LastName}";
+        }
+        else
+        {
+            logDetails = $"Kişi güncellendi: {existing.FirstName} {existing.LastName}";
+        }
+
         await _auditLogService.LogAsync(
             userId,
             username,
             "UPDATE",
             "Contact",
             existing.Id,
-            $"Kişi güncellendi: {existing.FirstName} {existing.LastName}"
+            logDetails
         );
 
         return true;

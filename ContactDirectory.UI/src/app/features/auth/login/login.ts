@@ -21,7 +21,7 @@ export class LoginComponent implements OnInit {
   successMessage = signal('');
   showPassword = signal(false);
   isSubmitting = signal(false);
-  rememberMe = signal(true);
+  rememberMe = signal(false);
 
   // KVKK Onay Durumları
   kvkkAccepted = signal(false);

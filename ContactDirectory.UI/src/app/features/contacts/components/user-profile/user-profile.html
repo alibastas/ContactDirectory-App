@@ -1,1 +1,135 @@
-<p>user-profile works!</p>
+<p-dialog
+  [visible]="visible"
+  (visibleChange)="onVisibleChange($event)"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [dismissableMask]="true"
+  [style]="{ width: '440px', 'max-width': '95vw' }"
+  [breakpoints]="{ '640px': '95vw' }"
+  styleClass="user-profile-dialog"
+>
+  <!-- Custom Header -->
+  <ng-template pTemplate="header">
+    <div class="dialog-header-custom">
+      <div class="header-icon-badge">
+        <i class="pi pi-user-edit"></i>
+      </div>
+      <div class="header-text">
+        <h3 class="dialog-title">Kullanıcı Profili</h3>
+        <p class="dialog-subtitle">Hesap ve iletişim bilgilerinizi yönetin</p>
+      </div>
+    </div>
+  </ng-template>
+
+  <!-- Body Content -->
+  <div class="profile-content">
+    <!-- Avatar & Identity Card -->
+    <div class="profile-avatar-card">
+      <div class="avatar-ring">
+        <div class="profile-avatar-large">
+          <span>{{ getInitials(profileData.username) }}</span>
+        </div>
+      </div>
+      <div class="profile-identity">
+        <h4 class="profile-username">{{ profileData.username || 'Kullanıcı' }}</h4>
+        <div class="profile-role-badge">
+          <span class="status-dot"></span>
+          <span>Aktif Oturum</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Form -->
+    <form class="profile-form" (ngSubmit)="onSave()">
+      <!-- Kullanıcı Adı (Salt Okunur) -->
+      <div class="form-field">
+        <div class="field-label-row">
+          <label class="field-label" for="profile-username">
+            <i class="pi pi-user"></i>
+            <span>Kullanıcı Adı</span>
+          </label>
+          <span class="readonly-badge">
+            <i class="pi pi-lock"></i> Değiştirilemez
+          </span>
+        </div>
+        <div class="input-wrapper disabled-wrap">
+          <input
+            id="profile-username"
+            type="text"
+            pInputText
+            [value]="profileData.username"
+            disabled
+            class="custom-input input-disabled"
+          />
+        </div>
+      </div>
+
+      <!-- E-posta -->
+      <div class="form-field">
+        <div class="field-label-row">
+          <label class="field-label" for="profile-email">
+            <i class="pi pi-envelope"></i>
+            <span>E-posta Adresi</span>
+          </label>
+          <span class="field-hint">İsteğe bağlı</span>
+        </div>
+        <div class="input-wrapper">
+          <input
+            id="profile-email"
+            type="email"
+            pInputText
+            [(ngModel)]="profileData.email"
+            name="email"
+            placeholder="ornek@sirket.com"
+            class="custom-input"
+          />
+        </div>
+      </div>
+
+      <!-- Ülke / Konum -->
+      <div class="form-field">
+        <div class="field-label-row">
+          <label class="field-label" for="profile-country">
+            <i class="pi pi-map-marker"></i>
+            <span>Ülke / Şehir</span>
+          </label>
+          <span class="field-hint">İsteğe bağlı</span>
+        </div>
+        <div class="input-wrapper">
+          <input
+            id="profile-country"
+            type="text"
+            pInputText
+            [(ngModel)]="profileData.country"
+            name="country"
+            placeholder="Örn: Türkiye, İstanbul"
+            class="custom-input"
+          />
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- Footer Actions -->
+  <ng-template pTemplate="footer">
+    <div class="dialog-footer-custom">
+      <button
+        type="button"
+        pButton
+        label="Vazgeç"
+        icon="pi pi-times"
+        class="p-button-text p-button-secondary btn-cancel"
+        (click)="close()"
+      ></button>
+      <button
+        type="button"
+        pButton
+        label="Değişiklikleri Kaydet"
+        icon="pi pi-check"
+        class="btn-save"
+        (click)="onSave()"
+      ></button>
+    </div>
+  </ng-template>
+</p-dialog>

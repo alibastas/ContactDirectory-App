@@ -1,34 +1,19 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
+import { AuthService } from '../../services/auth';
 
 /**
  * AuthGuard — Korumalı rotalara erişimi kontrol eder.
  *
  * Token yoksa veya süresi dolmuşsa kullanıcıyı /login'e yönlendirir.
- * Angular'ın modern fonksiyonel guard yapısını kullanır (class-based değil).
+ * AuthService üzerinden hem localStorage (Beni Hatırla) hem de sessionStorage (standart oturum) destekler.
  */
 export const authGuard: CanActivateFn = () => {
   const router = inject(Router);
-  const token = localStorage.getItem('token');
+  const authService = inject(AuthService);
 
-  if (!token) {
-    router.navigate(['/login']);
-    return false;
-  }
-
-  // JWT token süre kontrolü
-  try {
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    const expiry = payload.exp * 1000; // Unix timestamp → milliseconds
-    if (Date.now() >= expiry) {
-      // Token süresi dolmuş → temizle ve login'e yönlendir
-      localStorage.removeItem('token');
-      router.navigate(['/login']);
-      return false;
-    }
-  } catch {
-    // Token parse edilemezse geçersiz say
-    localStorage.removeItem('token');
+  if (!authService.isLoggedIn()) {
+    authService.logout();
     router.navigate(['/login']);
     return false;
   }
@@ -42,34 +27,19 @@ export const authGuard: CanActivateFn = () => {
  */
 export const adminGuard: CanActivateFn = () => {
   const router = inject(Router);
-  const token = localStorage.getItem('token');
+  const authService = inject(AuthService);
 
-  if (!token) {
+  if (!authService.isLoggedIn()) {
+    authService.logout();
     router.navigate(['/login']);
     return false;
   }
 
-  try {
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    const expiry = payload.exp * 1000;
-    if (Date.now() >= expiry) {
-      localStorage.removeItem('token');
-      router.navigate(['/login']);
-      return false;
-    }
-
-    const role = localStorage.getItem('current_user_role') ||
-                 payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] ||
-                 payload.role;
-
-    if (role?.toLowerCase() !== 'admin') {
-      router.navigate(['/contacts']);
-      return false;
-    }
-
-    return true;
-  } catch {
-    router.navigate(['/login']);
+  if (!authService.isAdmin()) {
+    router.navigate(['/contacts']);
     return false;
   }
+
+  return true;
 };
+

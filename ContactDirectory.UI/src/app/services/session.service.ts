@@ -125,6 +125,6 @@ export class SessionService {
     }
     this.showWarning.set(false);
     this.authService.logout();
-    this.router.navigate(['/auth/login']);
+    this.router.navigate(['/login']);
   }
 }

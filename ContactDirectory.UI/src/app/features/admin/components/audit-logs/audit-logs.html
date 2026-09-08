@@ -28,15 +28,30 @@
         </button>
       </div>
 
-      <!-- User Filter Dropdown -->
+      <!-- User Filter Dropdown (PrimeNG Select) -->
       <div class="user-filter-select-wrap">
-        <i class="pi pi-user select-icon"></i>
-        <select class="user-filter-select" [value]="selectedUserFilter()" (change)="onUserFilterChange($event)">
-          <option value="ALL">👤 Tüm Kullanıcılar</option>
-          <option *ngFor="let u of users" [value]="u.username">
-            {{ u.username }} ({{ u.role }})
-          </option>
-        </select>
+        <p-select 
+          [options]="userOptions()" 
+          [ngModel]="selectedUserFilter()" 
+          (ngModelChange)="onPrimeUserChange($event)"
+          optionLabel="label" 
+          optionValue="value"
+          [appendTo]="'self'"
+          styleClass="prime-user-select"
+          placeholder="Kullanıcı Seçin">
+          <ng-template pTemplate="selectedItem" let-selected>
+            <div class="user-option-item" *ngIf="selected">
+              <i [ngClass]="selected.icon || 'pi pi-user'"></i>
+              <span>{{ selected.label }}</span>
+            </div>
+          </ng-template>
+          <ng-template pTemplate="item" let-option>
+            <div class="user-option-item">
+              <i [ngClass]="option.icon || 'pi pi-user'"></i>
+              <span>{{ option.label }}</span>
+            </div>
+          </ng-template>
+        </p-select>
       </div>
 
       <!-- Quick Search -->

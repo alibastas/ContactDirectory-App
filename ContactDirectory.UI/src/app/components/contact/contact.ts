@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ContactService, AdvancedSearchParams } from '../../services/contact.service';
 import { Contact } from '../../core/models/contact.model';
 import { Router } from '@angular/router';
+import { finalize } from 'rxjs';
 import { AuthService } from '../../services/auth';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
@@ -123,20 +124,19 @@ import { ExcelService } from '../../services/excel.service';
 
         <div class="content-grid-full">
           <div class="card list-card">
-            <div class="card-header">
-              <div class="card-header-icon list-icon">
-                <i class="pi pi-list"></i>
+            <app-contact-search
+              [activeFilter]="activeFilter()"
+              [searchQuery]="searchQuery()"
+              (filterChange)="setFilter($event)"
+              (searchChange)="setSearchQuery($event)"
+              (advancedChange)="setAdvancedFilters($event)">
+              <div title class="card-title-group">
+                <div class="card-header-icon list-icon">
+                  <i class="pi pi-list"></i>
+                </div>
+                <h2>Kayıtlı Kişiler</h2>
               </div>
-              <h2>Kayıtlı Kişiler</h2>
-
-              <app-contact-search
-                [activeFilter]="activeFilter()"
-                [searchQuery]="searchQuery()"
-                (filterChange)="setFilter($event)"
-                (searchChange)="setSearchQuery($event)"
-                (advancedChange)="setAdvancedFilters($event)">
-              </app-contact-search>
-            </div>
+            </app-contact-search>
 
             <app-contact-table
               [contacts]="contacts()"
@@ -443,16 +443,15 @@ import { ExcelService } from '../../services/excel.service';
       min-height: 500px;
     }
 
-    .card-header {
+    .card-title-group {
       display: flex;
       align-items: center;
-      gap: 1rem;
-      flex-wrap: wrap;
+      gap: 0.85rem;
     }
     
     .card-header-icon {
-      width: 48px;
-      height: 48px;
+      width: 44px;
+      height: 44px;
       border-radius: var(--radius-md);
       display: flex;
       align-items: center;
@@ -464,12 +463,11 @@ import { ExcelService } from '../../services/excel.service';
       color: var(--info-600);
     }
 
-    .card-header h2 {
+    .card-title-group h2 {
       font-size: 1.25rem;
       font-weight: 700;
       color: var(--text-primary);
       margin: 0;
-      flex-grow: 1;
     }
   `]
 })
@@ -655,22 +653,30 @@ export class ContactComponent implements OnInit {
     this.showContactDetails.set(true);
   }
 
+  private togglingFavorites = new Set<number>();
+
   toggleFavorite(id: number) {
+    if (this.togglingFavorites.has(id)) return;
+
     const contact = this.contacts().find(c => c.id === id);
     if (!contact) return;
     
+    this.togglingFavorites.add(id);
+
     const updatedContact = { ...contact, isFavorite: !contact.isFavorite };
     this.contacts.update(contacts => contacts.map(c => c.id === id ? updatedContact : c));
 
-    this.contactService.updateContact(id, updatedContact).subscribe({
-      next: () => {
-        this.loadStats();
-      },
-      error: () => {
-        this.contacts.update(contacts => contacts.map(c => c.id === id ? contact : c));
-        this.messageService.add({ severity: 'error', summary: 'Hata', detail: 'Favori durumu güncellenemedi.' });
-      }
-    });
+    this.contactService.updateContact(id, updatedContact)
+      .pipe(finalize(() => this.togglingFavorites.delete(id)))
+      .subscribe({
+        next: () => {
+          this.loadStats();
+        },
+        error: () => {
+          this.contacts.update(contacts => contacts.map(c => c.id === id ? contact : c));
+          this.messageService.add({ severity: 'error', summary: 'Hata', detail: 'Favori durumu güncellenemedi.' });
+        }
+      });
   }
 
   setFilter(filter: 'all' | 'favorites') {

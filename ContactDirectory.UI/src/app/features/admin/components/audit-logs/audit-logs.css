@@ -89,38 +89,88 @@
   box-shadow: var(--shadow-xs);
 }
 
-/* User Filter Dropdown */
+/* User Filter Dropdown (PrimeNG Select) */
 .user-filter-select-wrap {
   position: relative;
   display: flex;
   align-items: center;
 }
 
-.user-filter-select-wrap .select-icon {
-  position: absolute;
-  left: 0.75rem;
-  color: var(--text-muted);
-  font-size: 0.8125rem;
-  pointer-events: none;
-}
-
-.user-filter-select {
-  padding: 0.45rem 1.75rem 0.45rem 2rem;
+::ng-deep .prime-user-select.p-select {
+  position: relative;
   border-radius: var(--radius-md);
   border: 1px solid var(--surface-border);
   background: white;
-  color: var(--text-primary);
-  font-size: 0.8125rem;
-  font-weight: 600;
-  outline: none;
-  cursor: pointer;
-  transition: border-color var(--transition-fast);
-  appearance: auto;
+  min-width: 190px;
+  height: 36px;
+  transition: all var(--transition-fast);
+  display: inline-flex;
+  align-items: center;
 }
 
-.user-filter-select:focus {
+::ng-deep .prime-user-select.p-select:hover {
+  border-color: var(--primary-300);
+}
+
+::ng-deep .prime-user-select.p-select:focus-within,
+::ng-deep .prime-user-select.p-select.p-focus {
   border-color: var(--primary-500);
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+::ng-deep .prime-user-select .p-select-label {
+  padding: 0.4rem 0.75rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+}
+
+::ng-deep .prime-user-select .p-select-dropdown {
+  width: 2rem;
+  color: var(--text-muted);
+}
+
+::ng-deep .prime-user-select .p-select-overlay {
+  position: absolute !important;
+  left: 0 !important;
+  top: calc(100% + 4px) !important;
+  min-width: 100% !important;
+  width: max-content !important;
+  border-radius: var(--radius-md) !important;
+  border: 1px solid var(--surface-border) !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.08) !important;
+  background: #ffffff !important;
+  z-index: 1000 !important;
+}
+
+::ng-deep .prime-user-select .p-select-list {
+  padding: 0.35rem !important;
+}
+
+::ng-deep .prime-user-select .p-select-option {
+  border-radius: var(--radius-sm) !important;
+  padding: 0.45rem 0.65rem !important;
+  transition: all var(--transition-fast) !important;
+}
+
+::ng-deep .prime-user-select .p-select-option.p-select-option-selected {
+  background: #ecfdf5 !important;
+  color: #059669 !important;
+}
+
+.user-option-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+
+.user-option-item i {
+  color: var(--primary-500);
+  font-size: 0.8125rem;
 }
 
 /* Quick Search */

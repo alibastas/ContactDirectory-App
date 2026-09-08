@@ -1,0 +1,307 @@
+/* ==========================================================================
+   Modern User Profile Dialog Styling
+   ========================================================================== */
+
+::ng-deep .user-profile-dialog.p-dialog {
+  border-radius: 20px !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(226, 232, 240, 0.8) !important;
+  box-shadow: 0 25px 60px -15px rgba(15, 23, 42, 0.25), 0 0 0 1px rgba(226, 232, 240, 0.6) !important;
+  background: #ffffff !important;
+}
+
+::ng-deep .user-profile-dialog .p-dialog-header {
+  background: linear-gradient(to bottom, #ffffff, #fafbfe) !important;
+  border-bottom: 1px solid #f1f5f9 !important;
+  padding: 1.25rem 1.5rem 1.1rem 1.5rem !important;
+}
+
+::ng-deep .user-profile-dialog .p-dialog-content {
+  background: #ffffff !important;
+  padding: 1.5rem 1.5rem 0.5rem 1.5rem !important;
+}
+
+::ng-deep .user-profile-dialog .p-dialog-footer {
+  background: #f8fafc !important;
+  border-top: 1px solid #f1f5f9 !important;
+  padding: 1rem 1.5rem !important;
+}
+
+::ng-deep .user-profile-dialog .p-dialog-header-actions .p-dialog-close-button {
+  width: 34px !important;
+  height: 34px !important;
+  border-radius: 50% !important;
+  color: #64748b !important;
+  background: transparent !important;
+  border: 1px solid transparent !important;
+  transition: all 0.2s ease !important;
+}
+
+::ng-deep .user-profile-dialog .p-dialog-header-actions .p-dialog-close-button:hover {
+  background: #f1f5f9 !important;
+  color: #0f172a !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* Header Area */
+.dialog-header-custom {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.header-icon-badge {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #eef2ff, #e0e7ff);
+  color: #4f46e5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  border: 1px solid #c7d2fe;
+  flex-shrink: 0;
+}
+
+.header-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.dialog-title {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.01em;
+}
+
+.dialog-subtitle {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #64748b;
+  font-weight: 400;
+}
+
+/* Content Container */
+.profile-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.35rem;
+}
+
+/* Identity Card */
+.profile-avatar-card {
+  display: flex;
+  align-items: center;
+  gap: 1.1rem;
+  padding: 1.1rem 1.25rem;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+}
+
+.avatar-ring {
+  padding: 3px;
+  background: linear-gradient(135deg, #6366f1, #a855f7);
+  border-radius: 50%;
+  box-shadow: 0 6px 16px -2px rgba(99, 102, 241, 0.35);
+  flex-shrink: 0;
+}
+
+.profile-avatar-large {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #4f46e5, #4338ca);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  border: 2px solid #ffffff;
+}
+
+.profile-identity {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.profile-username {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #0f172a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.profile-role-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: #ecfdf5;
+  color: #059669;
+  border: 1px solid #a7f3d0;
+  border-radius: 9999px;
+  padding: 0.18rem 0.6rem;
+  font-size: 0.725rem;
+  font-weight: 600;
+  width: fit-content;
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25);
+}
+
+/* Form Styles */
+.profile-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.field-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.field-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #334155;
+}
+
+.field-label i {
+  font-size: 0.85rem;
+  color: #6366f1;
+}
+
+.readonly-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.725rem;
+  font-weight: 500;
+  color: #64748b;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  padding: 0.15rem 0.45rem;
+  border-radius: 6px;
+}
+
+.readonly-badge i {
+  font-size: 0.65rem;
+}
+
+.field-hint {
+  font-size: 0.725rem;
+  color: #94a3b8;
+  font-style: italic;
+}
+
+.input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.custom-input {
+  width: 100% !important;
+  box-sizing: border-box !important;
+  padding: 0.65rem 0.95rem !important;
+  border-radius: 10px !important;
+  border: 1.5px solid #e2e8f0 !important;
+  font-size: 0.875rem !important;
+  color: #0f172a !important;
+  background: #ffffff !important;
+  transition: all 0.2s ease !important;
+}
+
+.custom-input::placeholder {
+  color: #94a3b8 !important;
+}
+
+.custom-input:focus {
+  border-color: #6366f1 !important;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12) !important;
+  outline: none !important;
+}
+
+.input-disabled {
+  background: #f8fafc !important;
+  color: #475569 !important;
+  border-color: #e2e8f0 !important;
+  cursor: not-allowed !important;
+  font-weight: 500 !important;
+  opacity: 0.9 !important;
+}
+
+/* Footer Actions */
+.dialog-footer-custom {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.btn-cancel {
+  border-radius: 10px !important;
+  font-weight: 600 !important;
+  font-size: 0.85rem !important;
+  color: #64748b !important;
+  padding: 0.6rem 1rem !important;
+  transition: all 0.2s ease !important;
+}
+
+.btn-cancel:hover {
+  background: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+.btn-save {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.5rem !important;
+  padding: 0.62rem 1.25rem !important;
+  border-radius: 10px !important;
+  border: none !important;
+  background: linear-gradient(135deg, #4f46e5, #6366f1) !important;
+  color: #ffffff !important;
+  font-size: 0.875rem !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.3) !important;
+  transition: all 0.2s ease !important;
+}
+
+.btn-save:hover {
+  background: linear-gradient(135deg, #4338ca, #4f46e5) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 6px 18px rgba(79, 70, 229, 0.4) !important;
+}
+
+.btn-save:active {
+  transform: translateY(0) !important;
+}

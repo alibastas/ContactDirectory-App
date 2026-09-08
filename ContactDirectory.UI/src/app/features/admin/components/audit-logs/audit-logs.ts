@@ -2,6 +2,7 @@ import { Component, OnInit, Input, Output, EventEmitter, ChangeDetectionStrategy
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PaginatorModule } from 'primeng/paginator';
+import { SelectModule } from 'primeng/select';
 import { AdminService } from '../../../../services/admin.service';
 import { AuditLogDto, UserSummaryDto } from '../../../../core/models/admin.model';
 
@@ -17,7 +18,7 @@ import { AuditLogDto, UserSummaryDto } from '../../../../core/models/admin.model
 @Component({
   selector: 'app-audit-logs',
   standalone: true,
-  imports: [CommonModule, FormsModule, PaginatorModule],
+  imports: [CommonModule, FormsModule, PaginatorModule, SelectModule],
   templateUrl: './audit-logs.html',
   styleUrls: ['./audit-logs.css'],
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -35,6 +36,19 @@ export class AuditLogsComponent implements OnInit {
   selectedActionFilter = signal<string>('ALL');
   selectedUserFilter = signal<string>('ALL');
   searchQuery = signal<string>('');
+
+  // PrimeNG Select Options
+  userOptions = computed(() => {
+    const list = [{ label: 'Tüm Kullanıcılar', value: 'ALL', icon: 'pi pi-users' }];
+    (this.users || []).forEach(u => {
+      list.push({
+        label: `${u.username} (${u.role})`,
+        value: u.username,
+        icon: 'pi pi-user'
+      });
+    });
+    return list;
+  });
 
   // Sayfalama (Pagination)
   firstRow = signal<number>(0);
@@ -113,6 +127,11 @@ export class AuditLogsComponent implements OnInit {
   onUserFilterChange(event: Event): void {
     const select = event.target as HTMLSelectElement;
     this.selectedUserFilter.set(select.value);
+    this.firstRow.set(0);
+  }
+
+  onPrimeUserChange(value: string): void {
+    this.selectedUserFilter.set(value || 'ALL');
     this.firstRow.set(0);
   }
 

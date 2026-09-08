@@ -52,7 +52,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
       // 401 Unauthorized durumunda oturumu kapatıp login sayfasına yönlendir
       if (error.status === 401 && !isAuthEndpoint) {
         authService.logout();
-        router.navigate(['/auth/login']);
+        router.navigate(['/login']);
       }
       return throwError(() => error);
     })
