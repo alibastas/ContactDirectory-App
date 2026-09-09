@@ -89,6 +89,20 @@ import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
       color: var(--text-secondary);
       margin-top: 0.25rem;
     }
+
+    /* Dark Mode Overrides */
+    :host-context(html.dark) .stat-total .stat-icon {
+      background: rgba(99, 102, 241, 0.2);
+      color: #818cf8;
+    }
+    :host-context(html.dark) .stat-fav .stat-icon {
+      background: rgba(245, 158, 11, 0.2);
+      color: #fbbf24;
+    }
+    :host-context(html.dark) .stat-search .stat-icon {
+      background: rgba(16, 185, 129, 0.2);
+      color: #34d399;
+    }
   `]
 })
 export class StatCardsComponent {

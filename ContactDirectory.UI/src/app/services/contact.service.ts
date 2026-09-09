@@ -85,6 +85,11 @@ export class ContactService {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 
+  /** Kullanıcının tüm rehberini sil (Şifre doğrulaması ile) */
+  deleteAllContacts(password: string): Observable<{ deletedCount: number; message: string }> {
+    return this.http.post<{ deletedCount: number; message: string }>(`${this.apiUrl}/delete-all`, { password });
+  }
+
   /** Global kişi istatistiklerini getir */
   getContactStats(): Observable<{ totalContacts: number, favoriteContacts: number }> {
     return this.http.get<{ totalContacts: number, favoriteContacts: number }>(`${this.apiUrl}/stats`);

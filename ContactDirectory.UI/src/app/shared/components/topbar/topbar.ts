@@ -28,7 +28,7 @@ import { CommonModule } from '@angular/common';
       justify-content: space-between;
       align-items: center;
       padding: 1.25rem 2rem;
-      background: rgba(255, 255, 255, 0.85);
+      background: var(--surface-overlay);
       backdrop-filter: blur(12px);
       border-bottom: 1px solid var(--surface-border);
       position: sticky;

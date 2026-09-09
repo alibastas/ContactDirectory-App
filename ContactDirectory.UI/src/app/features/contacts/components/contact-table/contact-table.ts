@@ -15,7 +15,7 @@ import { TableModule, Table } from 'primeng/table';
         rowGroupMode="subheader" groupRowsBy="firstLetter"
         [lazy]="true" (onLazyLoad)="onLazyLoadData($event)" [totalRecords]="totalRecords"
         [loading]="isLoading"
-        [paginator]="true" [rows]="10" [rowsPerPageOptions]="[10, 20, 50]" [(first)]="firstRow">
+        [paginator]="true" [rows]="rows" [rowsPerPageOptions]="[10, 20, 50, 100]" [(first)]="firstRow">
         
         <ng-template #header>
           <tr>
@@ -50,7 +50,7 @@ import { TableModule, Table } from 'primeng/table';
                   {{ getInitials(contact.firstName, contact.lastName) }}
                 </div>
                 <div class="contact-name">
-                  <strong>{{ contact.firstName }} {{ contact.lastName }}</strong>
+                  <strong>{{ formatName(contact) }}</strong>
                 </div>
               </div>
             </td>
@@ -285,6 +285,28 @@ import { TableModule, Table } from 'primeng/table';
       color: var(--text-secondary);
       font-size: 0.9rem;
     }
+
+    /* Dark Mode Overrides */
+    :host-context(html.dark) .phone-badge {
+      background: rgba(99, 102, 241, 0.12);
+      border-color: rgba(99, 102, 241, 0.3);
+      color: #a5b4fc;
+    }
+    :host-context(html.dark) .phone-badge:hover {
+      background: rgba(99, 102, 241, 0.22);
+      border-color: rgba(99, 102, 241, 0.45);
+      color: #c7d2fe;
+    }
+    :host-context(html.dark) .group-header-text {
+      color: #a5b4fc;
+    }
+    :host-context(html.dark) ::ng-deep .p-rowgroup-header td {
+      background: rgba(99, 102, 241, 0.12) !important;
+      border-bottom: 1px solid rgba(99, 102, 241, 0.25) !important;
+    }
+    :host-context(html.dark) .email-link {
+      color: #38bdf8;
+    }
   `]
 })
 export class ContactTableComponent {
@@ -295,6 +317,8 @@ export class ContactTableComponent {
   @Input() searchQuery: string = '';
   @Input() activeFilter: 'all' | 'favorites' = 'all';
   @Input() totalRecords: number = 0;
+  @Input() rows: number = 20;
+  @Input() nameFormat: 'first-last' | 'last-first' = 'first-last';
   
   @Output() viewContact = new EventEmitter<Contact>();
   @Output() editContact = new EventEmitter<number>();
@@ -316,6 +340,13 @@ export class ContactTableComponent {
   ];
 
   // Removed isFavorite since we use contact.isFavorite directly in template
+
+  formatName(contact: Contact): string {
+    if (this.nameFormat === 'last-first') {
+      return contact.lastName ? `${contact.lastName}, ${contact.firstName}` : (contact.firstName || '');
+    }
+    return `${contact.firstName || ''} ${contact.lastName || ''}`.trim();
+  }
 
   onToggleFavorite(id?: number, event?: Event) {
     if (event) event.stopPropagation();

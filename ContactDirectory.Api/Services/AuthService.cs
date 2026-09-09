@@ -14,11 +14,13 @@ public class AuthService : IAuthService
 {
     private readonly AppDbContext _context;
     private readonly IConfiguration _configuration;
+    private readonly IAuditLogService _auditLogService;
 
-    public AuthService(AppDbContext context, IConfiguration configuration)
+    public AuthService(AppDbContext context, IConfiguration configuration, IAuditLogService auditLogService)
     {
         _context = context;
         _configuration = configuration;
+        _auditLogService = auditLogService;
     }
 
     public async Task<(bool IsSuccess, string Message)> RegisterAsync(UserRegisterDto request)
@@ -82,6 +84,77 @@ public class AuthService : IAuthService
 
         string newToken = CreateToken(user, expireMinutes, isRememberMe);
         return (true, newToken, user.Role, "Oturum başarıyla yenilendi.");
+    }
+
+    public async Task<(bool IsSuccess, string Message)> ChangePasswordAsync(int userId, ChangePasswordDto request)
+    {
+        var user = await _context.Users.FindAsync(userId);
+        if (user == null)
+        {
+            return (false, "Kullanıcı bulunamadı.");
+        }
+
+        if (!BCrypt.Net.BCrypt.Verify(request.CurrentPassword, user.PasswordHash))
+        {
+            return (false, "Mevcut şifreniz hatalı.");
+        }
+
+        if (string.IsNullOrWhiteSpace(request.NewPassword) || request.NewPassword.Length < 4)
+        {
+            return (false, "Yeni şifre en az 4 karakter olmalıdır.");
+        }
+
+        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword, 10);
+        await _context.SaveChangesAsync();
+
+        await _auditLogService.LogAsync(
+            user.Id,
+            user.Username,
+            "UPDATE",
+            "User",
+            user.Id,
+            "Kullanıcı şifresini başarıyla değiştirdi."
+        );
+
+        return (true, "Şifreniz başarıyla değiştirildi.");
+    }
+
+    public async Task<(bool IsSuccess, string Message)> DeleteAccountAsync(int userId, string password)
+    {
+        var user = await _context.Users.FindAsync(userId);
+        if (user == null)
+        {
+            return (false, "Kullanıcı bulunamadı.");
+        }
+
+        if (string.IsNullOrWhiteSpace(password) || !BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
+        {
+            return (false, "Girdiğiniz hesap şifresi hatalı. Hesap silme işlemi iptal edildi.");
+        }
+
+        var username = user.Username;
+
+        // Kullanıcıya ait tüm kişileri temizle
+        var userContacts = await _context.Contacts.Where(c => c.UserId == userId).ToListAsync();
+        if (userContacts.Count > 0)
+        {
+            _context.Contacts.RemoveRange(userContacts);
+        }
+
+        // Kullanıcıyı sil
+        _context.Users.Remove(user);
+        await _context.SaveChangesAsync();
+
+        await _auditLogService.LogAsync(
+            userId,
+            username,
+            "DELETE",
+            "User",
+            userId,
+            $"Kullanıcı şifre doğrulamasıyla hesabını ve tüm verilerini kalıcı olarak sildi: {username}"
+        );
+
+        return (true, "Hesabınız ve tüm verileriniz başarıyla silindi.");
     }
 
     private string CreateToken(User user, int expireMinutes, bool rememberMe)

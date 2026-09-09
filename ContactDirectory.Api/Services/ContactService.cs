@@ -562,5 +562,42 @@ public class ContactService : IContactService
                       (skippedCount > 0 ? $", {skippedCount} yinelenen/geçersiz kayıt atlandı" : "") + "."
         };
     }
+
+    public async Task<(bool IsSuccess, int DeletedCount, string Message)> DeleteAllContactsAsync(int userId, string password)
+    {
+        var user = await _context.Users.FindAsync(userId);
+        if (user == null)
+        {
+            return (false, 0, "Kullanıcı hesabı bulunamadı.");
+        }
+
+        if (string.IsNullOrWhiteSpace(password) || !BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
+        {
+            return (false, 0, "Girdiğiniz hesap şifresi hatalı. Rehber silme işlemi iptal edildi.");
+        }
+
+        var contacts = await _context.Contacts
+            .Where(c => c.UserId == userId)
+            .ToListAsync();
+
+        int count = contacts.Count;
+        if (count > 0)
+        {
+            _context.Contacts.RemoveRange(contacts);
+            await _context.SaveChangesAsync();
+
+            var username = await GetUsernameAsync(userId);
+            await _auditLogService.LogAsync(
+                userId,
+                username,
+                "DELETE",
+                "Contact",
+                null,
+                $"Kullanıcı şifre doğrulamasıyla tüm rehberini temizledi ({count} kişi silindi)."
+            );
+        }
+
+        return (true, count, $"Rehberinizdeki tüm kişiler ({count} kişi) başarıyla silindi.");
+    }
 }
 

@@ -1,9 +1,10 @@
-import { Component, OnInit, ChangeDetectionStrategy, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { DialogModule } from 'primeng/dialog';
 import { AuthService } from '../../../services/auth';
+import { ThemeService } from '../../../services/theme.service';
 
 @Component({
   selector: 'app-login',
@@ -13,7 +14,7 @@ import { AuthService } from '../../../services/auth';
   styleUrls: ['./login.css'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class LoginComponent implements OnInit {
+export class LoginComponent implements OnInit, OnDestroy {
   username = signal('');
   password = signal('');
   isRegisterMode = signal(false);
@@ -30,14 +31,23 @@ export class LoginComponent implements OnInit {
 
   constructor(
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private themeService: ThemeService
   ) {}
 
   ngOnInit() {
+    // Login ekranı her zaman açık tema olarak görüntülenir
+    this.themeService.forceLightMode();
+
     // Eğer kullanıcının zaten aktif geçerli bir oturumu varsa (Beni Hatırla gibi) doğrudan rehbere yönlendir
     if (this.authService.isLoggedIn()) {
       this.router.navigate(['/contacts']);
     }
+  }
+
+  ngOnDestroy() {
+    // Login ekranından ayrılırken kullanıcının kayıtlı tema tercihini geri yükle
+    this.themeService.restoreTheme();
   }
 
   onInputChange() {

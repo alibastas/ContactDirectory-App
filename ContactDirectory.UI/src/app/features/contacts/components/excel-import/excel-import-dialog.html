@@ -2,7 +2,8 @@
   [visible]="visible" 
   (visibleChange)="onVisibleChange($event)" 
   [modal]="true" 
-  [style]="{ width: '680px', maxWidth: '95vw' }"
+  [style]="{ width: '680px', maxWidth: '95vw', maxHeight: '92vh' }"
+  [contentStyle]="{ 'max-height': 'calc(92vh - 160px)', 'overflow-y': 'auto' }"
   [breakpoints]="{ '768px': '95vw' }"
   [draggable]="false" 
   [resizable]="false" 
@@ -10,7 +11,7 @@
   styleClass="excel-import-dialog">
 
   <!-- Custom Header -->
-  <ng-template pTemplate="header">
+  <ng-template #header pTemplate="header">
     <div class="dialog-header-custom">
       <div class="header-icon-badge" [class.csv-badge]="importType === 'csv'">
         <i [class]="headerIcon"></i>
@@ -198,7 +199,7 @@
   </div>
 
   <!-- Dialog Footer Actions -->
-  <ng-template pTemplate="footer">
+  <ng-template #footer pTemplate="footer">
     <div class="dialog-footer-custom">
       <button 
         type="button" 

@@ -109,6 +109,11 @@
   border-radius: var(--radius-full);
 }
 
+:host-context(html.dark) .you-badge {
+  background: rgba(59, 130, 246, 0.25) !important;
+  color: #93c5fd !important;
+}
+
 .user-avatar-mini {
   width: 32px;
   height: 32px;
@@ -154,6 +159,18 @@
   border: 1px solid #cbd5e1;
 }
 
+:host-context(html.dark) .role-admin {
+  background: rgba(168, 85, 247, 0.18) !important;
+  color: #c084fc !important;
+  border-color: rgba(168, 85, 247, 0.35) !important;
+}
+
+:host-context(html.dark) .role-user {
+  background: rgba(100, 116, 139, 0.18) !important;
+  color: #cbd5e1 !important;
+  border-color: rgba(100, 116, 139, 0.3) !important;
+}
+
 .btn-toggle-role {
   display: inline-flex;
   align-items: center;
@@ -189,6 +206,28 @@
   background: #475569;
   color: white;
   border-color: #475569;
+}
+
+:host-context(html.dark) .btn-make-admin {
+  background: rgba(168, 85, 247, 0.15) !important;
+  color: #c084fc !important;
+  border-color: rgba(168, 85, 247, 0.35) !important;
+}
+
+:host-context(html.dark) .btn-make-admin:hover:not(:disabled) {
+  background: #9333ea !important;
+  color: #ffffff !important;
+}
+
+:host-context(html.dark) .btn-make-user {
+  background: rgba(100, 116, 139, 0.15) !important;
+  color: #cbd5e1 !important;
+  border-color: rgba(100, 116, 139, 0.35) !important;
+}
+
+:host-context(html.dark) .btn-make-user:hover:not(:disabled) {
+  background: #475569 !important;
+  color: #ffffff !important;
 }
 
 .btn-toggle-role:disabled {

@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { SessionTimeoutDialogComponent } from './components/session-timeout-dialog/session-timeout-dialog';
+import { ThemeService } from './services/theme.service';
 
 @Component({
   selector: 'app-root',
@@ -13,4 +14,5 @@ import { SessionTimeoutDialogComponent } from './components/session-timeout-dial
 })
 export class AppComponent {
   title = 'ContactDirectory.UI';
+  private themeService = inject(ThemeService);
 }

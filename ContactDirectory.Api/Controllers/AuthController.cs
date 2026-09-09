@@ -52,4 +52,43 @@ public class AuthController : ControllerBase
 
         return Ok(new { token = result.Token, role = result.Role, message = result.Message });
     }
+
+    [Authorize]
+    [HttpPost("change-password")]
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto request)
+    {
+        var userIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userIdStr) || !int.TryParse(userIdStr, out int userId))
+        {
+            return Unauthorized("Geçersiz oturum.");
+        }
+
+        var result = await _authService.ChangePasswordAsync(userId, request);
+        if (!result.IsSuccess)
+        {
+            return BadRequest(new { message = result.Message });
+        }
+
+        return Ok(new { message = result.Message });
+    }
+
+    [Authorize]
+    [HttpPost("delete-account")]
+    [HttpDelete("delete-account")]
+    public async Task<IActionResult> DeleteAccount([FromBody] DeleteAccountDto request)
+    {
+        var userIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userIdStr) || !int.TryParse(userIdStr, out int userId))
+        {
+            return Unauthorized("Geçersiz oturum.");
+        }
+
+        var result = await _authService.DeleteAccountAsync(userId, request.Password);
+        if (!result.IsSuccess)
+        {
+            return BadRequest(new { message = result.Message });
+        }
+
+        return Ok(new { message = result.Message });
+    }
 }

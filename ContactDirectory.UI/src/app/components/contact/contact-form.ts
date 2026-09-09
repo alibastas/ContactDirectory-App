@@ -54,7 +54,10 @@ import { TopbarComponent } from '../../shared/components/topbar/topbar';
           <form (ngSubmit)="onSubmit()" class="contact-form">
             <div class="form-field">
               <label for="contact-firstName">
-                <i class="pi pi-user" style="margin-right: 6px; font-size: 0.8rem;"></i>Ad
+                <span class="label-left">
+                  <i class="pi pi-user"></i>
+                  <span>Ad</span>
+                </span>
               </label>
               <input type="text" id="contact-firstName" pInputText [(ngModel)]="activeContact.firstName" name="firstName"
                 placeholder="Örn: Ahmet" class="custom-input" required />
@@ -62,7 +65,10 @@ import { TopbarComponent } from '../../shared/components/topbar/topbar';
 
             <div class="form-field">
               <label for="contact-lastName">
-                <i class="pi pi-user" style="margin-right: 6px; font-size: 0.8rem;"></i>Soyad
+                <span class="label-left">
+                  <i class="pi pi-user"></i>
+                  <span>Soyad</span>
+                </span>
               </label>
               <input type="text" id="contact-lastName" pInputText [(ngModel)]="activeContact.lastName" name="lastName"
                 placeholder="Örn: Yılmaz" class="custom-input" required />
@@ -70,7 +76,10 @@ import { TopbarComponent } from '../../shared/components/topbar/topbar';
 
             <div class="form-field">
               <label for="contact-phoneNumber">
-                <i class="pi pi-phone" style="margin-right: 6px; font-size: 0.8rem;"></i>Telefon Numarası
+                <span class="label-left">
+                  <i class="pi pi-phone"></i>
+                  <span>Telefon Numarası</span>
+                </span>
               </label>
               <input type="text" id="contact-phoneNumber" pInputText [(ngModel)]="activeContact.phoneNumber" name="phoneNumber"
                 placeholder="0555..." maxlength="11" (keypress)="numberOnly($event)"
@@ -79,7 +88,10 @@ import { TopbarComponent } from '../../shared/components/topbar/topbar';
 
             <div class="form-field">
               <label for="contact-email">
-                <i class="pi pi-envelope" style="margin-right: 6px; font-size: 0.8rem;"></i>E-posta
+                <span class="label-left">
+                  <i class="pi pi-envelope"></i>
+                  <span>E-posta</span>
+                </span>
                 <span class="optional-tag">isteğe bağlı</span>
               </label>
               <input type="email" id="contact-email" pInputText [(ngModel)]="activeContact.email" name="email"
@@ -166,6 +178,7 @@ import { TopbarComponent } from '../../shared/components/topbar/topbar';
       font-size: 1.75rem;
       background: var(--primary-50);
       color: var(--primary-600);
+      transition: all var(--transition-base);
     }
     .card-header-icon.editing {
       background: var(--warning-50);
@@ -199,6 +212,18 @@ import { TopbarComponent } from '../../shared/components/topbar/topbar';
       align-items: center;
       justify-content: space-between;
     }
+
+    .label-left {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .label-left i {
+      color: var(--primary-500);
+      font-size: 0.85rem;
+    }
+
     .optional-tag {
       font-size: 0.75rem;
       font-weight: 500;
@@ -210,18 +235,29 @@ import { TopbarComponent } from '../../shared/components/topbar/topbar';
 
     .custom-input {
       width: 100%;
-      padding: 0.875rem 1rem;
-      border-radius: var(--radius-md);
-      border: 1px solid var(--surface-border);
+      padding: 0.875rem 1.1rem;
+      border-radius: 12px;
+      border: 1.5px solid var(--surface-border);
       transition: all var(--transition-fast);
-      background: var(--surface-card);
-      font-size: 1rem;
+      background: var(--surface-ground);
+      font-size: 0.95rem;
       color: var(--text-primary);
     }
+
+    .custom-input::placeholder {
+      color: var(--text-muted);
+      opacity: 0.8;
+    }
+
+    .custom-input:hover {
+      border-color: var(--primary-300);
+    }
+
     .custom-input:focus {
       outline: none;
-      border-color: var(--primary-400);
-      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+      border-color: var(--primary-500);
+      background: var(--surface-card);
+      box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
     }
 
     .form-actions {
@@ -259,6 +295,102 @@ import { TopbarComponent } from '../../shared/components/topbar/topbar';
     }
     .btn-warning:hover:not(:disabled) {
       background: var(--warning-600);
+    }
+
+    /* ============================================
+       DARK THEME (KARANLIK MOD) ÖZEL STİLLERİ
+       ============================================ */
+    :host-context(html.dark) .dashboard-bg {
+      background: radial-gradient(circle at 50% 20%, #111a2f 0%, #080c15 100%);
+    }
+
+    :host-context(html.dark) .card {
+      background: #111a2e;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.04);
+    }
+
+    :host-context(html.dark) .card-header-icon {
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.25) 0%, rgba(56, 189, 248, 0.15) 100%);
+      color: #818cf8;
+      border: 1px solid rgba(99, 102, 241, 0.35);
+      box-shadow: 0 0 25px rgba(99, 102, 241, 0.3);
+    }
+
+    :host-context(html.dark) .card-header-icon.editing {
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.25) 0%, rgba(251, 191, 36, 0.15) 100%);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      box-shadow: 0 0 25px rgba(245, 158, 11, 0.25);
+    }
+
+    :host-context(html.dark) .card-header h2 {
+      color: #f8fafc;
+    }
+
+    :host-context(html.dark) .form-field label {
+      color: #cbd5e1;
+    }
+
+    :host-context(html.dark) .label-left i {
+      color: #818cf8;
+    }
+
+    :host-context(html.dark) .optional-tag {
+      background: rgba(148, 163, 184, 0.12);
+      color: #94a3b8;
+      border: 1px solid rgba(148, 163, 184, 0.18);
+    }
+
+    /* Karanlık Mod Giriş Kutuları: Belirgin, net sınırlı ve kontrastlı */
+    :host-context(html.dark) .custom-input {
+      background: #090d16 !important;
+      border: 1.5px solid #334155 !important;
+      color: #f8fafc !important;
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.35) !important;
+    }
+
+    :host-context(html.dark) .custom-input::placeholder {
+      color: #64748b !important;
+    }
+
+    :host-context(html.dark) .custom-input:hover {
+      background: #0d1527 !important;
+      border-color: #475569 !important;
+    }
+
+    :host-context(html.dark) .custom-input:focus {
+      background: #0f182c !important;
+      border-color: #818cf8 !important;
+      box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.25), inset 0 1px 2px rgba(0, 0, 0, 0.2) !important;
+      outline: none !important;
+    }
+
+    :host-context(html.dark) .btn-secondary {
+      background: #111a2e;
+      border: 1px solid #334155;
+      color: #cbd5e1;
+    }
+
+    :host-context(html.dark) .btn-secondary:hover {
+      background: #182338;
+      border-color: #6366f1;
+      color: #ffffff;
+    }
+
+    :host-context(html.dark) .btn-primary {
+      background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+      box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
+    }
+
+    :host-context(html.dark) .btn-primary:hover:not(:disabled) {
+      background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
+      box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
+    }
+
+    :host-context(html.dark) .btn-warning {
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35);
     }
 
     .loading-state {

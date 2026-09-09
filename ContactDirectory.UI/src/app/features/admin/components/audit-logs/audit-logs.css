@@ -84,9 +84,20 @@
 }
 
 .filter-btn.active {
-  background: white;
+  background: var(--surface-card);
   color: var(--primary-600);
   box-shadow: var(--shadow-xs);
+}
+
+:host-context(html.dark) .section-icon {
+  background: rgba(16, 185, 129, 0.2) !important;
+  color: #34d399 !important;
+}
+
+:host-context(html.dark) .filter-btn.active {
+  background: #1e293b !important;
+  color: #818cf8 !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4) !important;
 }
 
 /* User Filter Dropdown (PrimeNG Select) */
@@ -100,12 +111,18 @@
   position: relative;
   border-radius: var(--radius-md);
   border: 1px solid var(--surface-border);
-  background: white;
+  background: var(--surface-card);
   min-width: 190px;
   height: 36px;
   transition: all var(--transition-fast);
   display: inline-flex;
   align-items: center;
+}
+
+:host-context(html.dark) ::ng-deep .prime-user-select.p-select {
+  background: #131d31 !important;
+  border-color: #1e293b !important;
+  color: #f8fafc !important;
 }
 
 ::ng-deep .prime-user-select.p-select:hover {
@@ -145,6 +162,12 @@
   z-index: 1000 !important;
 }
 
+html.dark ::ng-deep .prime-user-select .p-select-overlay {
+  background: #131d31 !important;
+  border-color: #1e293b !important;
+  box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.7) !important;
+}
+
 ::ng-deep .prime-user-select .p-select-list {
   padding: 0.35rem !important;
 }
@@ -155,9 +178,22 @@
   transition: all var(--transition-fast) !important;
 }
 
+html.dark ::ng-deep .prime-user-select .p-select-option {
+  color: #f8fafc !important;
+}
+
+html.dark ::ng-deep .prime-user-select .p-select-option:hover {
+  background: rgba(255, 255, 255, 0.06) !important;
+}
+
 ::ng-deep .prime-user-select .p-select-option.p-select-option-selected {
   background: #ecfdf5 !important;
   color: #059669 !important;
+}
+
+html.dark ::ng-deep .prime-user-select .p-select-option.p-select-option-selected {
+  background: rgba(16, 185, 129, 0.18) !important;
+  color: #34d399 !important;
 }
 
 .user-option-item {
@@ -193,7 +229,7 @@
   border: 1px solid var(--surface-border);
   font-size: 0.8125rem;
   outline: none;
-  background: white;
+  background: var(--surface-card);
   color: var(--text-primary);
   transition: border-color var(--transition-fast);
   width: 170px;
@@ -204,12 +240,23 @@
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
 }
 
+:host-context(html.dark) .search-input {
+  background: #131d31 !important;
+  border-color: #1e293b !important;
+  color: #f8fafc !important;
+}
+
+:host-context(html.dark) .search-input:focus {
+  border-color: #6366f1 !important;
+  background: #17233d !important;
+}
+
 .btn-refresh {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
   padding: 0.45rem 0.85rem;
-  background: white;
+  background: var(--surface-card);
   border: 1px solid var(--surface-border);
   border-radius: var(--radius-md);
   font-size: 0.8125rem;
@@ -223,6 +270,18 @@
   background: var(--surface-hover);
   color: var(--primary-600);
   border-color: var(--primary-300);
+}
+
+:host-context(html.dark) .btn-refresh {
+  background: #131d31 !important;
+  border-color: #1e293b !important;
+  color: #94a3b8 !important;
+}
+
+:host-context(html.dark) .btn-refresh:hover {
+  background: rgba(99, 102, 241, 0.15) !important;
+  color: #818cf8 !important;
+  border-color: #6366f1 !important;
 }
 
 /* Table */
@@ -297,6 +356,25 @@
   background: #fef2f2;
   color: #b91c1c;
   border: 1px solid #fecaca;
+}
+
+/* Dark mode action badges: soft translucent pills instead of bright white glare */
+:host-context(html.dark) .action-create {
+  background: rgba(16, 185, 129, 0.18) !important;
+  color: #34d399 !important;
+  border-color: rgba(16, 185, 129, 0.35) !important;
+}
+
+:host-context(html.dark) .action-update {
+  background: rgba(59, 130, 246, 0.18) !important;
+  color: #60a5fa !important;
+  border-color: rgba(59, 130, 246, 0.35) !important;
+}
+
+:host-context(html.dark) .action-delete {
+  background: rgba(239, 68, 68, 0.18) !important;
+  color: #f87171 !important;
+  border-color: rgba(239, 68, 68, 0.35) !important;
 }
 
 .time-cell {

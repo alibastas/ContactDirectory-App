@@ -422,6 +422,58 @@ import { AdvancedSearchParams } from '../../../../services/contact.service';
       color: var(--primary-500);
       font-size: 0.85rem;
     }
+
+    /* Dark Mode Overrides */
+    :host-context(html.dark) .chip.active {
+      background: rgba(99, 102, 241, 0.2);
+      color: #a5b4fc;
+      border-color: rgba(99, 102, 241, 0.4);
+    }
+
+    :host-context(html.dark) .btn-toggle-advanced.active {
+      background: rgba(99, 102, 241, 0.2);
+      color: #a5b4fc;
+      border-color: rgba(99, 102, 241, 0.4);
+    }
+
+    :host-context(html.dark) .advanced-panel {
+      background: #0f172a;
+      border-color: #1e293b;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    }
+
+    :host-context(html.dark) .advanced-icon-box {
+      background: rgba(99, 102, 241, 0.2);
+      color: #818cf8;
+    }
+
+    :host-context(html.dark) .field-input {
+      background: #131d31;
+      border-color: #1e293b;
+      color: #f8fafc;
+    }
+
+    :host-context(html.dark) .field-input:focus {
+      border-color: #6366f1;
+      background: #17233d;
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
+    }
+
+    :host-context(html.dark) .btn-clear-advanced {
+      background: rgba(239, 68, 68, 0.15);
+      border-color: rgba(239, 68, 68, 0.35);
+      color: #f87171;
+    }
+
+    :host-context(html.dark) .btn-clear-advanced:hover {
+      background: rgba(239, 68, 68, 0.25);
+      color: #fca5a5;
+    }
+
+    :host-context(html.dark) .advanced-hint {
+      border-top-color: #1e293b;
+      color: #64748b;
+    }
   `]
 })
 export class ContactSearchComponent implements OnInit, OnDestroy {

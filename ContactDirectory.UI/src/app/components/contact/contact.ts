@@ -106,6 +106,9 @@ import { ExcelService } from '../../services/excel.service';
             <i class="pi pi-plus"></i>
             <span>Yeni Kişi Ekle</span>
           </button>
+          <button class="btn-settings" (click)="goToSettings()" title="Ayarlar">
+            <i class="pi pi-cog"></i>
+          </button>
           <div class="user-avatar" title="Kullanıcı" (click)="openProfile()" style="cursor: pointer;">
             <i class="pi pi-user"></i>
           </div>
@@ -144,6 +147,8 @@ import { ExcelService } from '../../services/excel.service';
               [searchQuery]="searchQuery()"
               [activeFilter]="activeFilter()"
               [totalRecords]="totalRecords()"
+              [rows]="pageSize()"
+              [nameFormat]="nameSortFormat()"
               (viewContact)="viewContact($event)"
               (editContact)="editContact($event)"
               (deleteContact)="confirmDeleteContact($event)"
@@ -281,6 +286,24 @@ import { ExcelService } from '../../services/excel.service';
       animation: dropdownFadeIn 0.15s ease-out;
     }
 
+    :host-context(html.dark) .btn-dropdown {
+      background: var(--surface-card);
+      border-color: var(--surface-border);
+      color: var(--text-primary);
+      box-shadow: none;
+    }
+    :host-context(html.dark) .btn-dropdown:hover {
+      background: var(--surface-hover);
+      border-color: var(--primary-400);
+      color: var(--primary-300);
+    }
+
+    :host-context(html.dark) .dropdown-menu {
+      background: #131d31;
+      border-color: #1e293b;
+      box-shadow: 0 16px 40px -6px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.08);
+    }
+
     @keyframes dropdownFadeIn {
       from {
         opacity: 0;
@@ -309,6 +332,10 @@ import { ExcelService } from '../../services/excel.service';
       background: var(--surface-hover);
     }
 
+    :host-context(html.dark) .dropdown-item:hover {
+      background: rgba(255, 255, 255, 0.06);
+    }
+
     .item-icon {
       width: 32px;
       height: 32px;
@@ -332,6 +359,19 @@ import { ExcelService } from '../../services/excel.service';
       color: #a855f7;
     }
 
+    :host-context(html.dark) .excel-icon {
+      background: rgba(16, 185, 129, 0.18);
+      color: #34d399;
+    }
+    :host-context(html.dark) .csv-icon {
+      background: rgba(59, 130, 246, 0.18);
+      color: #60a5fa;
+    }
+    :host-context(html.dark) .template-icon {
+      background: rgba(168, 85, 247, 0.18);
+      color: #c084fc;
+    }
+
     .item-text {
       display: flex;
       flex-direction: column;
@@ -353,6 +393,10 @@ import { ExcelService } from '../../services/excel.service';
       margin: 0.3rem 0.5rem;
     }
 
+    :host-context(html.dark) .dropdown-divider {
+      background: #1e293b;
+    }
+
     .filter-notice {
       display: flex;
       align-items: center;
@@ -369,6 +413,36 @@ import { ExcelService } from '../../services/excel.service';
     .filter-notice i {
       font-size: 0.75rem;
       color: #d97706;
+    }
+
+    :host-context(html.dark) .filter-notice {
+      background: rgba(245, 158, 11, 0.12);
+      border-color: rgba(245, 158, 11, 0.35);
+      color: #fcd34d;
+    }
+    :host-context(html.dark) .filter-notice i {
+      color: #fbbf24;
+    }
+
+    .btn-settings {
+      background: var(--surface-card);
+      color: var(--text-secondary);
+      border: 1px solid var(--surface-border);
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 1.05rem;
+      transition: all var(--transition-fast);
+    }
+    .btn-settings:hover {
+      color: var(--primary-600);
+      border-color: var(--primary-300);
+      background: var(--surface-hover);
+      transform: rotate(45deg);
     }
 
     .btn-logout {
@@ -486,7 +560,8 @@ export class ContactComponent implements OnInit {
 
   totalRecords = signal(0);
   currentPage = signal(1);
-  pageSize = signal(10);
+  pageSize = signal(20);
+  nameSortFormat = signal<'first-last' | 'last-first'>('first-last');
 
   globalTotalContacts = signal(0);
   globalFavoriteCount = signal(0);
@@ -538,6 +613,16 @@ export class ContactComponent implements OnInit {
       email: localStorage.getItem(`profile_email_${username}`) || '',
       country: localStorage.getItem(`profile_country_${username}`) || ''
     });
+
+    const savedFormat = localStorage.getItem('contact_name_format') as 'first-last' | 'last-first';
+    if (savedFormat) {
+      this.nameSortFormat.set(savedFormat);
+    }
+
+    const savedPageSize = localStorage.getItem('contact_page_size');
+    if (savedPageSize) {
+      this.pageSize.set(parseInt(savedPageSize, 10));
+    }
 
     this.loadContacts();
     this.loadStats();
@@ -638,6 +723,10 @@ export class ContactComponent implements OnInit {
 
   goToAdmin() {
     this.router.navigate(['/admin']);
+  }
+
+  goToSettings() {
+    this.router.navigate(['/settings']);
   }
 
   addNewContact() {

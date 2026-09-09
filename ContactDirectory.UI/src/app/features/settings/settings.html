@@ -1,0 +1,530 @@
+<div class="settings-page">
+  <p-toast position="top-right" />
+  <p-confirmdialog />
+
+  <!-- Topbar -->
+  <app-topbar>
+    <ng-container actions>
+      <button class="btn-secondary" (click)="goBack()">
+        <i class="pi pi-arrow-left"></i>
+        <span>Rehbere Dön</span>
+      </button>
+    </ng-container>
+  </app-topbar>
+
+  <main class="settings-main">
+    <div class="settings-container">
+      
+      <!-- Page Header -->
+      <div class="settings-page-header">
+        <div class="header-icon-box">
+          <i class="pi pi-cog"></i>
+        </div>
+        <div class="header-text">
+          <h1>Uygulama Ayarları</h1>
+          <p>Görünüm, rehber tercihleri, hesap güvenliği ve veri yönetimi</p>
+        </div>
+      </div>
+
+      <!-- Settings Layout: Sidebar Tabs + Content Area -->
+      <div class="settings-grid">
+        
+        <!-- Navigation Sidebar Tabs -->
+        <aside class="settings-sidebar">
+          <button 
+            type="button" 
+            class="tab-btn" 
+            [class.active]="activeTab() === 'appearance'"
+            (click)="setTab('appearance')">
+            <i class="pi pi-palette"></i>
+            <div class="tab-label">
+              <strong>Görünüm & Tema</strong>
+              <small>Açık, koyu ve sistem modu</small>
+            </div>
+          </button>
+
+          <button 
+            type="button" 
+            class="tab-btn" 
+            [class.active]="activeTab() === 'preferences'"
+            (click)="setTab('preferences')">
+            <i class="pi pi-sliders-h"></i>
+            <div class="tab-label">
+              <strong>Rehber Tercihleri</strong>
+              <small>Sıralama ve sayfa boyutu</small>
+            </div>
+          </button>
+
+          <button 
+            type="button" 
+            class="tab-btn" 
+            [class.active]="activeTab() === 'security'"
+            (click)="setTab('security')">
+            <i class="pi pi-shield"></i>
+            <div class="tab-label">
+              <strong>Güvenlik & Şifre</strong>
+              <small>Hesap şifresini güncelle</small>
+            </div>
+          </button>
+
+          <button 
+            type="button" 
+            class="tab-btn tab-danger" 
+            [class.active]="activeTab() === 'danger'"
+            (click)="setTab('danger')">
+            <i class="pi pi-exclamation-triangle"></i>
+            <div class="tab-label">
+              <strong>Tehlikeli Bölge</strong>
+              <small>Verileri veya hesabı sil</small>
+            </div>
+          </button>
+        </aside>
+
+        <!-- Main Content Area -->
+        <section class="settings-content-panel">
+          
+          <!-- TAB 1: APPEARANCE & THEME -->
+          <div *ngIf="activeTab() === 'appearance'" class="tab-pane">
+            <div class="card-section-header">
+              <h2>Görünüm & Tema Seçimi</h2>
+              <p>ContactDirectory arayüzünün renk temasını zevkinize ve çalışma ortamınıza göre özelleştirin.</p>
+            </div>
+
+            <div class="theme-cards-grid">
+              <!-- Light Theme Card -->
+              <div 
+                class="theme-card light-preview" 
+                [class.selected]="themeService.currentTheme() === 'light'"
+                (click)="setTheme('light')">
+                <div class="theme-preview-box">
+                  <div class="mock-header"></div>
+                  <div class="mock-body">
+                    <div class="mock-line"></div>
+                    <div class="mock-line short"></div>
+                  </div>
+                  <div class="theme-icon-badge">
+                    <i class="pi pi-sun"></i>
+                  </div>
+                </div>
+                <div class="theme-card-info">
+                  <div class="theme-title-row">
+                    <strong>Açık Tema</strong>
+                    <span class="active-check" *ngIf="themeService.currentTheme() === 'light'">
+                      <i class="pi pi-check"></i>
+                    </span>
+                  </div>
+                  <p>Gündüz saatleri ve aydınlık çalışma ortamları için yüksek kontrastlı ferah tema.</p>
+                </div>
+              </div>
+
+              <!-- Dark Theme Card -->
+              <div 
+                class="theme-card dark-preview" 
+                [class.selected]="themeService.currentTheme() === 'dark'"
+                (click)="setTheme('dark')">
+                <div class="theme-preview-box">
+                  <div class="mock-header"></div>
+                  <div class="mock-body">
+                    <div class="mock-line"></div>
+                    <div class="mock-line short"></div>
+                  </div>
+                  <div class="theme-icon-badge">
+                    <i class="pi pi-moon"></i>
+                  </div>
+                </div>
+                <div class="theme-card-info">
+                  <div class="theme-title-row">
+                    <strong>Koyu Tema</strong>
+                    <span class="active-check" *ngIf="themeService.currentTheme() === 'dark'">
+                      <i class="pi pi-check"></i>
+                    </span>
+                  </div>
+                  <p>Gece ve loş ışıkta göz yorgunluğunu azaltan modern koyu lacivert tonlar.</p>
+                </div>
+              </div>
+
+              <!-- System Default Card -->
+              <div 
+                class="theme-card system-preview" 
+                [class.selected]="themeService.currentTheme() === 'system'"
+                (click)="setTheme('system')">
+                <div class="theme-preview-box">
+                  <div class="mock-header"></div>
+                  <div class="mock-body">
+                    <div class="mock-line"></div>
+                    <div class="mock-line short"></div>
+                  </div>
+                  <div class="theme-icon-badge">
+                    <i class="pi pi-desktop"></i>
+                  </div>
+                </div>
+                <div class="theme-card-info">
+                  <div class="theme-title-row">
+                    <strong>Sistem Varsayılanı</strong>
+                    <span class="active-check" *ngIf="themeService.currentTheme() === 'system'">
+                      <i class="pi pi-check"></i>
+                    </span>
+                  </div>
+                  <p>İşletim sisteminizin (Windows / macOS) açık veya koyu moduna otomatik uyum sağlar.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB 2: CONTACT PREFERENCES -->
+          <div *ngIf="activeTab() === 'preferences'" class="tab-pane">
+            <div class="card-section-header">
+              <h2>Rehber & Liste Tercihleri</h2>
+              <p>Rehber tablosunda kişilerin nasıl görüntüleneceğini ve sayfalanacağını belirleyin.</p>
+            </div>
+
+            <div class="settings-cards-list">
+              <!-- Name Order -->
+              <div class="settings-card">
+                <div class="card-left-info">
+                  <div class="card-icon-pill">
+                    <i class="pi pi-id-card"></i>
+                  </div>
+                  <div>
+                    <h4>Kişi Adı Sıralama Biçimi</h4>
+                    <p>Rehber listesinde isim ve soyismin diziliş biçimi</p>
+                  </div>
+                </div>
+                <div class="card-right-action">
+                  <div class="pill-segmented-control">
+                    <button 
+                      type="button" 
+                      class="segment-btn" 
+                      [class.active]="nameSortFormat() === 'first-last'"
+                      (click)="setNameSortFormat('first-last')">
+                      Ad Soyad
+                    </button>
+                    <button 
+                      type="button" 
+                      class="segment-btn" 
+                      [class.active]="nameSortFormat() === 'last-first'"
+                      (click)="setNameSortFormat('last-first')">
+                      Soyad, Ad
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Page Size -->
+              <div class="settings-card">
+                <div class="card-left-info">
+                  <div class="card-icon-pill">
+                    <i class="pi pi-list"></i>
+                  </div>
+                  <div>
+                    <h4>Sayfa Başına Kayıt Sayısı</h4>
+                    <p>Rehber tablosunda varsayılan olarak kaç kişi listelensin</p>
+                  </div>
+                </div>
+                <div class="card-right-action">
+                  <p-select 
+                    [options]="pageSizeOptions" 
+                    [ngModel]="defaultPageSize()" 
+                    (ngModelChange)="onPageSizeChange($event)"
+                    optionLabel="label" 
+                    optionValue="value" 
+                    [appendTo]="'self'"
+                    styleClass="page-size-select">
+                  </p-select>
+                </div>
+              </div>
+
+              <!-- Country Code -->
+              <div class="settings-card">
+                <div class="card-left-info">
+                  <div class="card-icon-pill">
+                    <i class="pi pi-phone"></i>
+                  </div>
+                  <div>
+                    <h4>Varsayılan Ülke Ön Eki</h4>
+                    <p>Yeni kişi eklerken ve Excel aktarımında baz alınan ulusal kod</p>
+                  </div>
+                </div>
+                <div class="card-right-action">
+                  <p-select 
+                    [options]="countryOptions" 
+                    [ngModel]="selectedCountryCode()" 
+                    (ngModelChange)="onCountryCodeChange($event)"
+                    optionLabel="label" 
+                    optionValue="dialCode" 
+                    [filter]="true"
+                    filterBy="name,dialCode,code"
+                    filterPlaceholder="Ülke adı veya kod ara..."
+                    placeholder="Ülke seçiniz"
+                    [appendTo]="'self'"
+                    styleClass="country-prefix-select">
+                    <ng-template pTemplate="selectedItem" let-selected>
+                      <div class="country-select-item" *ngIf="selected">
+                        <span class="country-flag">{{ selected.flag }}</span>
+                        <span class="country-name">{{ selected.name }}</span>
+                        <span class="country-dial-code">({{ selected.dialCode }})</span>
+                      </div>
+                    </ng-template>
+                    <ng-template pTemplate="item" let-option>
+                      <div class="country-select-item">
+                        <span class="country-flag">{{ option.flag }}</span>
+                        <span class="country-name">{{ option.name }}</span>
+                        <span class="country-dial-code">({{ option.dialCode }})</span>
+                      </div>
+                    </ng-template>
+                  </p-select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB 3: SECURITY & PASSWORD -->
+          <div *ngIf="activeTab() === 'security'" class="tab-pane">
+            <div class="card-section-header">
+              <h2>Güvenlik & Şifre Değiştirme</h2>
+              <p>Hesabınızın güvenliği için şifrenizi düzenli aralıklarla yenilemenizi öneririz.</p>
+            </div>
+
+            <div class="settings-card-form">
+              <form (ngSubmit)="onChangePassword()" class="password-form">
+                <div class="form-field">
+                  <label for="current-pwd">
+                    <i class="pi pi-key"></i>
+                    <span>Mevcut Şifre</span>
+                  </label>
+                  <input 
+                    id="current-pwd" 
+                    type="password" 
+                    pInputText 
+                    [(ngModel)]="currentPassword" 
+                    name="currentPassword" 
+                    placeholder="Mevcut şifrenizi giriniz" 
+                    required 
+                    class="custom-input" />
+                </div>
+
+                <div class="form-field">
+                  <label for="new-pwd">
+                    <i class="pi pi-lock"></i>
+                    <span>Yeni Şifre</span>
+                  </label>
+                  <input 
+                    id="new-pwd" 
+                    type="password" 
+                    pInputText 
+                    [(ngModel)]="newPassword" 
+                    name="newPassword" 
+                    placeholder="En az 4 karakter" 
+                    required 
+                    class="custom-input" />
+                </div>
+
+                <div class="form-field">
+                  <label for="confirm-pwd">
+                    <i class="pi pi-lock"></i>
+                    <span>Yeni Şifre (Tekrar)</span>
+                  </label>
+                  <input 
+                    id="confirm-pwd" 
+                    type="password" 
+                    pInputText 
+                    [(ngModel)]="confirmPassword" 
+                    name="confirmPassword" 
+                    placeholder="Yeni şifrenizi tekrar giriniz" 
+                    required 
+                    class="custom-input" />
+                </div>
+
+                <div class="form-actions-right">
+                  <button 
+                    type="submit" 
+                    class="btn-primary" 
+                    [disabled]="isChangingPassword() || !currentPassword || !newPassword || !confirmPassword">
+                    <i class="pi" [ngClass]="{'pi-spin pi-spinner': isChangingPassword(), 'pi-check': !isChangingPassword()}"></i>
+                    <span>{{ isChangingPassword() ? 'Güncelleniyor...' : 'Şifreyi Güncelle' }}</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          <!-- TAB 4: DANGER ZONE -->
+          <div *ngIf="activeTab() === 'danger'" class="tab-pane">
+            <div class="card-section-header danger-header">
+              <h2>Tehlikeli Bölge</h2>
+              <p>Buradaki işlemler geri alınamaz. Lütfen dikkatli işlem yapınız.</p>
+            </div>
+
+            <div class="danger-cards-list">
+              <!-- Delete All Contacts -->
+              <div class="danger-card">
+                <div class="danger-card-left">
+                  <div class="danger-icon-pill">
+                    <i class="pi pi-trash"></i>
+                  </div>
+                  <div>
+                    <h4>Tüm Rehberdeki Kişileri Sil</h4>
+                    <p>Rehberinizde kayıtlı olan tüm kişileri ve detayları tek seferde kalıcı olarak temizler. Hesabınız açık kalır.</p>
+                  </div>
+                </div>
+                <button 
+                  type="button" 
+                  class="btn-danger" 
+                  [disabled]="isDeletingContacts()"
+                  (click)="openDeleteContactsDialog()">
+                  <i class="pi" [ngClass]="{'pi-spin pi-spinner': isDeletingContacts(), 'pi-trash': !isDeletingContacts()}"></i>
+                  <span>{{ isDeletingContacts() ? 'Siliniyor...' : 'Tüm Rehberi Temizle' }}</span>
+                </button>
+              </div>
+
+              <!-- Delete Entire Account -->
+              <div class="danger-card danger-critical">
+                <div class="danger-card-left">
+                  <div class="danger-icon-pill critical">
+                    <i class="pi pi-user-minus"></i>
+                  </div>
+                  <div>
+                    <h4>Hesabı Tamamen Kapat ve Sil</h4>
+                    <p>Kullanıcı hesabınızı, oturum bilgilerinizi ve tüm rehber verilerinizi kalıcı olarak yok eder. Bu işlem geri alınamaz.</p>
+                  </div>
+                </div>
+                <button 
+                  type="button" 
+                  class="btn-danger btn-critical" 
+                  [disabled]="isDeletingAccount()"
+                  (click)="openDeleteAccountDialog()">
+                  <i class="pi" [ngClass]="{'pi-spin pi-spinner': isDeletingAccount(), 'pi-ban': !isDeletingAccount()}"></i>
+                  <span>{{ isDeletingAccount() ? 'Hesap Siliniyor...' : 'Hesabımı Kalıcı Olarak Sil' }}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+        </section>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Delete All Contacts Confirmation Modal with Password -->
+  <p-dialog 
+    header="Tüm Rehberi Silme Onayı" 
+    [visible]="showDeleteContactsDialog()" 
+    (visibleChange)="showDeleteContactsDialog.set($event)"
+    [modal]="true" 
+    [closable]="!isDeletingContacts()"
+    [draggable]="false" 
+    [resizable]="false" 
+    [style]="{ width: '480px', maxWidth: '94vw' }"
+    styleClass="delete-contacts-dialog">
+    
+    <div class="delete-dialog-content">
+      <div class="delete-warning-banner">
+        <div class="warning-icon-box">
+          <i class="pi pi-exclamation-triangle"></i>
+        </div>
+        <div class="warning-text">
+          <strong>Bu işlem geri alınamaz!</strong>
+          <p>Rehberinizdeki kayıtlı tüm kişiler ve detaylar tek seferde silinecektir. Hesabınız açık kalır.</p>
+        </div>
+      </div>
+
+      <div class="delete-password-prompt">
+        <label for="delete-all-pwd">
+          <i class="pi pi-lock"></i>
+          <span>İşlemi onaylamak için hesap şifrenizi giriniz:</span>
+        </label>
+        <input 
+          id="delete-all-pwd" 
+          type="password" 
+          pInputText 
+          [(ngModel)]="deleteContactsPassword" 
+          (keyup.enter)="confirmDeleteAllContacts()"
+          placeholder="Hesap şifrenizi giriniz" 
+          [disabled]="isDeletingContacts()"
+          class="custom-input delete-pwd-input" 
+          autocomplete="current-password" />
+      </div>
+
+      <div class="delete-dialog-actions">
+        <button 
+          type="button" 
+          class="btn-dialog-cancel" 
+          [disabled]="isDeletingContacts()"
+          (click)="cancelDeleteContacts()">
+          <i class="pi pi-times"></i>
+          <span>Vazgeç</span>
+        </button>
+        <button 
+          type="button" 
+          class="btn-dialog-confirm" 
+          [disabled]="isDeletingContacts() || !deleteContactsPassword"
+          (click)="confirmDeleteAllContacts()">
+          <i class="pi" [ngClass]="{'pi-spin pi-spinner': isDeletingContacts(), 'pi-trash': !isDeletingContacts()}"></i>
+          <span>{{ isDeletingContacts() ? 'Siliniyor...' : 'Şifreyi Doğrula ve Rehberi Sil' }}</span>
+        </button>
+      </div>
+    </div>
+  </p-dialog>
+
+  <!-- Delete Entire Account Confirmation Modal with Password -->
+  <p-dialog 
+    header="Hesabı Kalıcı Olarak Kapat ve Sil" 
+    [visible]="showDeleteAccountDialog()" 
+    (visibleChange)="showDeleteAccountDialog.set($event)"
+    [modal]="true" 
+    [closable]="!isDeletingAccount()"
+    [draggable]="false" 
+    [resizable]="false" 
+    [style]="{ width: '490px', maxWidth: '94vw' }"
+    styleClass="delete-contacts-dialog delete-account-dialog">
+    
+    <div class="delete-dialog-content">
+      <div class="delete-warning-banner critical-banner">
+        <div class="warning-icon-box critical">
+          <i class="pi pi-ban"></i>
+        </div>
+        <div class="warning-text">
+          <strong>Bu işlem kesinlikle geri alınamaz!</strong>
+          <p>Kullanıcı hesabınız, tüm rehber kayıtlarınız ve oturum bilgileriniz kalıcı olarak silinecektir.</p>
+        </div>
+      </div>
+
+      <div class="delete-password-prompt">
+        <label for="delete-account-pwd">
+          <i class="pi pi-lock"></i>
+          <span>Hesabınızı silmeyi onaylamak için lütfen hesap şifrenizi giriniz:</span>
+        </label>
+        <input 
+          id="delete-account-pwd" 
+          type="password" 
+          pInputText 
+          [(ngModel)]="deleteAccountPassword" 
+          (keyup.enter)="confirmDeleteAccount()"
+          placeholder="Hesap şifrenizi giriniz" 
+          [disabled]="isDeletingAccount()"
+          class="custom-input delete-pwd-input" 
+          autocomplete="current-password" />
+      </div>
+
+      <div class="delete-dialog-actions">
+        <button 
+          type="button" 
+          class="btn-dialog-cancel" 
+          [disabled]="isDeletingAccount()"
+          (click)="cancelDeleteAccount()">
+          <i class="pi pi-times"></i>
+          <span>Vazgeç</span>
+        </button>
+        <button 
+          type="button" 
+          class="btn-dialog-confirm btn-dialog-critical" 
+          [disabled]="isDeletingAccount() || !deleteAccountPassword"
+          (click)="confirmDeleteAccount()">
+          <i class="pi" [ngClass]="{'pi-spin pi-spinner': isDeletingAccount(), 'pi-ban': !isDeletingAccount()}"></i>
+          <span>{{ isDeletingAccount() ? 'Hesap Siliniyor...' : 'Şifreyi Doğrula ve Hesabı Sil' }}</span>
+        </button>
+      </div>
+    </div>
+  </p-dialog>
+</div>

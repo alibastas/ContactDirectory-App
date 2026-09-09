@@ -102,6 +102,19 @@ public class ContactsController : ControllerBase
         return NoContent();
     }
 
+    [HttpPost("delete-all")]
+    [HttpDelete("delete-all")]
+    public async Task<IActionResult> DeleteAllContacts([FromBody] DeleteAllContactsDto dto)
+    {
+        int userId = GetCurrentUserId();
+        var result = await _contactService.DeleteAllContactsAsync(userId, dto.Password);
+        if (!result.IsSuccess)
+        {
+            return BadRequest(new { message = result.Message });
+        }
+        return Ok(new { deletedCount = result.DeletedCount, message = result.Message });
+    }
+
     [HttpGet("export-data")]
     public async Task<ActionResult<List<ContactResponseDto>>> GetExportData(
         [FromQuery] string? searchTerm = null,

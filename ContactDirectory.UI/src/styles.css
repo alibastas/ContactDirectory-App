@@ -78,6 +78,39 @@
   --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 }
 
+/* --- Dark Theme Overrides --- */
+html.dark {
+  /* Surfaces (Dark Theme) */
+  --surface-ground: #090d16;
+  --surface-section: #0f172a;
+  --surface-card: #131d31;
+  --surface-overlay: rgba(19, 29, 49, 0.95);
+  --surface-border: #1e293b;
+  --surface-border-light: #182338;
+  --surface-hover: rgba(99, 102, 241, 0.12);
+
+  /* Text */
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --text-inverse: #0f172a;
+
+  /* Primary & Status Tints (Dark Theme) */
+  --primary-50: rgba(99, 102, 241, 0.15);
+  --primary-100: rgba(99, 102, 241, 0.25);
+  --primary-200: rgba(99, 102, 241, 0.35);
+  --success-50: rgba(16, 185, 129, 0.15);
+  --danger-50: rgba(239, 68, 68, 0.15);
+  --warning-50: rgba(245, 158, 11, 0.15);
+
+  /* Shadows */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 10px 25px -3px rgba(0, 0, 0, 0.6);
+  --shadow-xl: 0 20px 40px -4px rgba(0, 0, 0, 0.7);
+}
+
 /* --- Global Reset --- */
 *, *::before, *::after {
   box-sizing: border-box;
@@ -101,6 +134,37 @@ html, body {
 
 body {
   zoom: 0.82; /* %100 ölçekte kompakt, kurumsal ve geniş dashboard görünümü (Fotoğraf 2 ölçeği) */
+}
+
+/* Login Ekranı Her Zaman Açık Tema, Tam Ekran ve Tam Ortalama */
+html:has(app-login),
+html.dark:has(app-login) {
+  background-color: #f1f5f9 !important;
+  color-scheme: light !important;
+  height: 100% !important;
+  min-height: 100vh !important;
+}
+
+body:has(app-login) {
+  background-color: #f1f5f9 !important;
+  color: #1e293b !important;
+  height: 100% !important;
+  min-height: 100vh !important;
+  zoom: 1 !important; /* Tarayıcı penceresinin tam geometrik ortalanması için */
+  display: flex !important;
+  flex-direction: column !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+app-root:has(app-login),
+app-login {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 auto !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 100vh !important;
 }
 
 /* --- Selection --- */
@@ -238,3 +302,617 @@ body {
 a[href*='primeng.org/license'], div:has(> a[href*='primeng.org/license']) { display: none !important; }
 
 body > div[style*='position: fixed'][style*='bottom'], body > a[href*='prime'] { display: none !important; opacity: 0 !important; z-index: -9999 !important; }
+
+/* ==========================================================================
+   GLOBAL PRIMENG DIALOG & MODAL POLISH (Light & Dark Theme Harmonized)
+   ========================================================================== */
+.p-dialog-mask {
+  background: rgba(15, 23, 42, 0.65) !important;
+  transition: opacity 0.1s ease-out !important;
+  will-change: opacity;
+}
+
+html.dark .p-dialog-mask {
+  background: rgba(0, 0, 0, 0.78) !important;
+}
+
+.p-dialog {
+  border-radius: 20px !important;
+  overflow: hidden !important;
+  border: 1px solid var(--surface-border) !important;
+  box-shadow: 0 25px 60px -15px rgba(15, 23, 42, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05) !important;
+  background: var(--surface-card) !important;
+  transform: translateZ(0);
+  will-change: transform, opacity;
+}
+
+html.dark .p-dialog {
+  background: #131d31 !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.08) !important;
+  color: #f8fafc !important;
+}
+
+.p-dialog .p-dialog-header {
+  background: var(--surface-card) !important;
+  color: var(--text-primary) !important;
+  border-bottom: 1px solid var(--surface-border) !important;
+  padding: 1.25rem 1.5rem !important;
+  border-top-left-radius: 20px !important;
+  border-top-right-radius: 20px !important;
+}
+
+.p-dialog .p-dialog-title {
+  font-weight: 700 !important;
+  font-size: 1.125rem !important;
+  letter-spacing: -0.01em !important;
+}
+
+html.dark .p-dialog .p-dialog-header {
+  background: #131d31 !important;
+  color: #f8fafc !important;
+  border-bottom-color: #1e293b !important;
+}
+
+.p-dialog .p-dialog-content {
+  background: var(--surface-card) !important;
+  color: var(--text-primary) !important;
+}
+
+.p-dialog .p-dialog-content:last-child {
+  border-bottom-left-radius: 20px !important;
+  border-bottom-right-radius: 20px !important;
+}
+
+html.dark .p-dialog .p-dialog-content {
+  background: #131d31 !important;
+  color: #f8fafc !important;
+}
+
+.p-dialog .p-dialog-footer {
+  background: var(--surface-ground) !important;
+  border-top: 1px solid var(--surface-border) !important;
+  padding: 1rem 1.5rem !important;
+  border-bottom-left-radius: 20px !important;
+  border-bottom-right-radius: 20px !important;
+}
+
+html.dark .p-dialog .p-dialog-footer {
+  background: #0f172a !important;
+  border-top-color: #1e293b !important;
+}
+
+.p-dialog .p-dialog-header-actions .p-dialog-close-button {
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 50% !important;
+  color: var(--text-muted) !important;
+  background: transparent !important;
+  border: 1px solid transparent !important;
+  transition: all 0.2s ease !important;
+}
+
+.p-dialog .p-dialog-header-actions .p-dialog-close-button:hover {
+  background: var(--surface-hover) !important;
+  color: var(--text-primary) !important;
+}
+
+html.dark .p-dialog .p-dialog-header-actions .p-dialog-close-button:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: #ffffff !important;
+}
+
+/* ==========================================================================
+   GLOBAL DARK THEME OVERRIDES (ADMIN PANEL & IMPORT DIALOGS)
+   ========================================================================== */
+
+/* --- 1. Admin Dashboard Dark Theme Overrides --- */
+html.dark .admin-tab-btn {
+  color: #94a3b8 !important;
+}
+
+html.dark .admin-tab-btn:hover {
+  background: rgba(255, 255, 255, 0.05) !important;
+  color: #f8fafc !important;
+}
+
+html.dark .admin-tab-btn.active {
+  background: rgba(99, 102, 241, 0.22) !important;
+  color: #c7d2fe !important;
+  border-color: rgba(99, 102, 241, 0.45) !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4) !important;
+}
+
+html.dark .admin-tab-btn.active i {
+  color: #818cf8 !important;
+}
+
+html.dark .admin-tab-btn .tab-badge {
+  background: #1e293b !important;
+  color: #94a3b8 !important;
+  border-color: #334155 !important;
+}
+
+html.dark .admin-tab-btn.active .tab-badge {
+  background: rgba(99, 102, 241, 0.35) !important;
+  color: #e0e7ff !important;
+  border-color: rgba(99, 102, 241, 0.6) !important;
+}
+
+/* Metric Cards Icons */
+html.dark .metric-card {
+  background: #131d31 !important;
+  border-color: #1e293b !important;
+}
+
+html.dark .metric-users .metric-icon {
+  background: rgba(99, 102, 241, 0.2) !important;
+  color: #818cf8 !important;
+}
+
+html.dark .metric-contacts .metric-icon {
+  background: rgba(14, 165, 233, 0.2) !important;
+  color: #38bdf8 !important;
+}
+
+html.dark .metric-logs .metric-icon {
+  background: rgba(16, 185, 129, 0.2) !important;
+  color: #34d399 !important;
+}
+
+/* Admin Topbar Buttons */
+html.dark .btn-nav-contacts {
+  background: #131d31 !important;
+  border-color: #1e293b !important;
+  color: #f8fafc !important;
+}
+
+html.dark .btn-nav-contacts:hover {
+  background: #1e293b !important;
+  color: #818cf8 !important;
+  border-color: #6366f1 !important;
+}
+
+html.dark .btn-logout {
+  background: #131d31 !important;
+  border-color: #1e293b !important;
+  color: #94a3b8 !important;
+}
+
+html.dark .btn-logout:hover {
+  background: rgba(239, 68, 68, 0.15) !important;
+  color: #f87171 !important;
+  border-color: rgba(239, 68, 68, 0.35) !important;
+}
+
+/* Admin Sections Cards & Table */
+html.dark .admin-section-card {
+  background: #131d31 !important;
+  border-color: #1e293b !important;
+}
+
+html.dark .section-header {
+  border-bottom-color: #1e293b !important;
+}
+
+html.dark .admin-table th {
+  background: #090d16 !important;
+  color: #94a3b8 !important;
+  border-bottom-color: #1e293b !important;
+}
+
+html.dark .admin-table td {
+  border-bottom-color: #182338 !important;
+  color: #f8fafc !important;
+}
+
+html.dark .admin-table tr:hover td {
+  background-color: rgba(255, 255, 255, 0.03) !important;
+}
+
+/* Audit Logs Filters & Controls */
+html.dark .filter-btn-group {
+  background: #090d16 !important;
+  border-color: #1e293b !important;
+}
+
+html.dark .filter-btn {
+  color: #94a3b8 !important;
+}
+
+html.dark .filter-btn:hover {
+  color: #f8fafc !important;
+}
+
+html.dark .filter-btn.active {
+  background: #1e293b !important;
+  color: #818cf8 !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5) !important;
+}
+
+html.dark .prime-user-select.p-select {
+  background: #131d31 !important;
+  border-color: #1e293b !important;
+  color: #f8fafc !important;
+}
+
+html.dark .prime-user-select .p-select-label {
+  color: #f8fafc !important;
+}
+
+html.dark .prime-user-select .p-select-overlay {
+  background: #131d31 !important;
+  border-color: #1e293b !important;
+  box-shadow: 0 12px 36px -4px rgba(0, 0, 0, 0.8) !important;
+}
+
+html.dark .prime-user-select .p-select-option {
+  color: #f8fafc !important;
+}
+
+html.dark .prime-user-select .p-select-option:hover {
+  background: rgba(255, 255, 255, 0.06) !important;
+}
+
+html.dark .prime-user-select .p-select-option.p-select-option-selected {
+  background: rgba(16, 185, 129, 0.2) !important;
+  color: #34d399 !important;
+}
+
+html.dark .search-input {
+  background: #131d31 !important;
+  border-color: #1e293b !important;
+  color: #f8fafc !important;
+}
+
+html.dark .search-input:focus {
+  border-color: #6366f1 !important;
+  background: #17233d !important;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25) !important;
+}
+
+/* Karanlık Mod Form Giriş Kutuları (Yüksek Kontrast & Belirginlik) */
+html.dark .custom-input {
+  background-color: #090d16 !important;
+  border: 1.5px solid #334155 !important;
+  color: #f8fafc !important;
+}
+
+html.dark .custom-input::placeholder {
+  color: #64748b !important;
+}
+
+html.dark .custom-input:hover {
+  background-color: #0d1527 !important;
+  border-color: #475569 !important;
+}
+
+html.dark .custom-input:focus {
+  background-color: #0f182c !important;
+  border-color: #818cf8 !important;
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.25) !important;
+  outline: none !important;
+}
+
+html.dark .btn-refresh {
+  background: #131d31 !important;
+  border-color: #1e293b !important;
+  color: #94a3b8 !important;
+}
+
+html.dark .btn-refresh:hover {
+  background: rgba(99, 102, 241, 0.15) !important;
+  color: #818cf8 !important;
+  border-color: #6366f1 !important;
+}
+
+/* Audit Log Action Tags */
+html.dark .action-create {
+  background: rgba(16, 185, 129, 0.18) !important;
+  color: #34d399 !important;
+  border: 1px solid rgba(16, 185, 129, 0.35) !important;
+}
+
+html.dark .action-update {
+  background: rgba(59, 130, 246, 0.18) !important;
+  color: #60a5fa !important;
+  border: 1px solid rgba(59, 130, 246, 0.35) !important;
+}
+
+html.dark .action-delete {
+  background: rgba(239, 68, 68, 0.18) !important;
+  color: #f87171 !important;
+  border: 1px solid rgba(239, 68, 68, 0.35) !important;
+}
+
+/* User Management Roles & Badges */
+html.dark .role-admin {
+  background: rgba(168, 85, 247, 0.18) !important;
+  color: #c084fc !important;
+  border: 1px solid rgba(168, 85, 247, 0.35) !important;
+}
+
+html.dark .role-user {
+  background: rgba(100, 116, 139, 0.18) !important;
+  color: #cbd5e1 !important;
+  border: 1px solid rgba(100, 116, 139, 0.3) !important;
+}
+
+html.dark .you-badge {
+  background: rgba(59, 130, 246, 0.25) !important;
+  color: #93c5fd !important;
+}
+
+html.dark .btn-make-admin {
+  background: rgba(168, 85, 247, 0.15) !important;
+  color: #c084fc !important;
+  border: 1px solid rgba(168, 85, 247, 0.35) !important;
+}
+
+html.dark .btn-make-admin:hover:not(:disabled) {
+  background: #9333ea !important;
+  color: #ffffff !important;
+}
+
+html.dark .btn-make-user {
+  background: rgba(100, 116, 139, 0.15) !important;
+  color: #cbd5e1 !important;
+  border: 1px solid rgba(100, 116, 139, 0.35) !important;
+}
+
+html.dark .btn-make-user:hover:not(:disabled) {
+  background: #475569 !important;
+  color: #ffffff !important;
+}
+
+html.dark .contact-count-badge {
+  background: #090d16 !important;
+  border-color: #1e293b !important;
+  color: #f8fafc !important;
+}
+
+
+/* --- 2. Excel & CSV Import Dialog Dark Theme Overrides --- */
+html.dark .excel-import-dialog.p-dialog {
+  background: #131d31 !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.08) !important;
+}
+
+html.dark .excel-import-dialog .p-dialog-header {
+  background: #131d31 !important;
+  border-bottom-color: #1e293b !important;
+}
+
+html.dark .excel-import-dialog .p-dialog-content {
+  background: #131d31 !important;
+}
+
+html.dark .excel-import-dialog .p-dialog-footer {
+  background: #0f172a !important;
+  border-top-color: #1e293b !important;
+}
+
+html.dark .excel-import-dialog .dialog-title {
+  color: #f8fafc !important;
+}
+
+html.dark .excel-import-dialog .dialog-subtitle {
+  color: #94a3b8 !important;
+}
+
+html.dark .excel-import-dialog .dialog-intro {
+  border-bottom-color: #1e293b !important;
+}
+
+html.dark .excel-import-dialog .file-type-pill {
+  background: rgba(16, 185, 129, 0.18) !important;
+  border-color: rgba(16, 185, 129, 0.35) !important;
+  color: #34d399 !important;
+}
+
+html.dark .excel-import-dialog .file-type-pill.csv-pill {
+  background: rgba(59, 130, 246, 0.18) !important;
+  border-color: rgba(59, 130, 246, 0.35) !important;
+  color: #60a5fa !important;
+}
+
+html.dark .excel-import-dialog .max-size-pill {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+  color: #cbd5e1 !important;
+}
+
+html.dark .excel-import-dialog .btn-sample-template {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+  color: #f8fafc !important;
+}
+
+html.dark .excel-import-dialog .btn-sample-template:hover {
+  background: #334155 !important;
+  color: #34d399 !important;
+  border-color: #475569 !important;
+}
+
+html.dark .excel-import-dialog .dropzone {
+  background: #090d16 !important;
+  border-color: #334155 !important;
+}
+
+html.dark .excel-import-dialog .dropzone:hover,
+html.dark .excel-import-dialog .dropzone.dragover {
+  background: rgba(16, 185, 129, 0.08) !important;
+  border-color: #10b981 !important;
+}
+
+html.dark .excel-import-dialog .dropzone-title {
+  color: #f8fafc !important;
+}
+
+html.dark .excel-import-dialog .dropzone-hint {
+  color: #94a3b8 !important;
+}
+
+html.dark .excel-import-dialog .dropzone-icon {
+  background: rgba(16, 185, 129, 0.2) !important;
+  border-color: rgba(16, 185, 129, 0.35) !important;
+  color: #34d399 !important;
+}
+
+html.dark .excel-import-dialog .dropzone-icon.csv-icon {
+  background: rgba(59, 130, 246, 0.2) !important;
+  border-color: rgba(59, 130, 246, 0.35) !important;
+  color: #60a5fa !important;
+}
+
+html.dark .excel-import-dialog .selected-file-card {
+  background: rgba(16, 185, 129, 0.12) !important;
+  border-color: rgba(16, 185, 129, 0.35) !important;
+}
+
+html.dark .excel-import-dialog .file-name {
+  color: #f8fafc !important;
+}
+
+html.dark .excel-import-dialog .file-size {
+  color: #34d399 !important;
+}
+
+html.dark .excel-import-dialog .file-icon-box {
+  background: #090d16 !important;
+  border-color: rgba(16, 185, 129, 0.35) !important;
+  color: #34d399 !important;
+}
+
+html.dark .excel-import-dialog .btn-remove-file {
+  background: #1e293b !important;
+  border-color: rgba(239, 68, 68, 0.4) !important;
+  color: #f87171 !important;
+}
+
+html.dark .excel-import-dialog .badge-valid {
+  background: rgba(16, 185, 129, 0.18) !important;
+  color: #34d399 !important;
+  border-color: rgba(16, 185, 129, 0.35) !important;
+}
+
+html.dark .excel-import-dialog .badge-duplicate {
+  background: rgba(59, 130, 246, 0.18) !important;
+  color: #60a5fa !important;
+  border-color: rgba(59, 130, 246, 0.35) !important;
+}
+
+html.dark .excel-import-dialog .badge-invalid {
+  background: rgba(245, 158, 11, 0.18) !important;
+  color: #fbbf24 !important;
+  border-color: rgba(245, 158, 11, 0.35) !important;
+}
+
+html.dark .excel-import-dialog .badge-total {
+  background: #1e293b !important;
+  color: #cbd5e1 !important;
+  border-color: #334155 !important;
+}
+
+html.dark .excel-import-dialog .preview-wrapper {
+  background: #090d16 !important;
+  border-color: #1e293b !important;
+}
+
+html.dark .excel-import-dialog .preview-table th {
+  background: #0f172a !important;
+  color: #cbd5e1 !important;
+  border-bottom-color: #1e293b !important;
+}
+
+html.dark .excel-import-dialog .preview-table td {
+  background: #090d16 !important;
+  color: #f1f5f9 !important;
+  border-bottom-color: #1e293b !important;
+}
+
+html.dark .excel-import-dialog .preview-table tr:hover td {
+  background: #131d31 !important;
+}
+
+html.dark .excel-import-dialog .phone-code {
+  color: #34d399 !important;
+}
+
+html.dark .excel-import-dialog .duplicate-strategy-card {
+  background: #0f172a !important;
+  border-color: #1e293b !important;
+}
+
+html.dark .excel-import-dialog .strategy-header h4 {
+  color: #f8fafc !important;
+}
+
+html.dark .excel-import-dialog .strategy-header p {
+  color: #94a3b8 !important;
+}
+
+html.dark .excel-import-dialog .strategy-icon-box {
+  background: rgba(99, 102, 241, 0.18) !important;
+  border-color: rgba(99, 102, 241, 0.35) !important;
+  color: #818cf8 !important;
+}
+
+html.dark .excel-import-dialog .strategy-option {
+  background: #131d31 !important;
+  border-color: #1e293b !important;
+}
+
+html.dark .excel-import-dialog .strategy-option:hover {
+  background: #182338 !important;
+  border-color: #334155 !important;
+}
+
+html.dark .excel-import-dialog .strategy-option.selected {
+  background: rgba(99, 102, 241, 0.16) !important;
+  border-color: #818cf8 !important;
+  box-shadow: 0 0 0 1px #818cf8 !important;
+}
+
+html.dark .excel-import-dialog .radio-circle {
+  border-color: #475569 !important;
+  background: transparent !important;
+}
+
+html.dark .excel-import-dialog .radio-circle.checked {
+  border-color: #818cf8 !important;
+}
+
+html.dark .excel-import-dialog .radio-circle.checked::after {
+  background: #818cf8 !important;
+}
+
+html.dark .excel-import-dialog .option-title {
+  color: #f8fafc !important;
+}
+
+html.dark .excel-import-dialog .option-title strong {
+  color: #f8fafc !important;
+}
+
+html.dark .excel-import-dialog .recommend-badge {
+  background: rgba(16, 185, 129, 0.2) !important;
+  color: #34d399 !important;
+  border-color: rgba(16, 185, 129, 0.35) !important;
+}
+
+html.dark .excel-import-dialog .option-desc {
+  color: #94a3b8 !important;
+}
+
+html.dark .excel-import-dialog .btn-cancel {
+  background: #1e293b !important;
+  border: 1px solid #334155 !important;
+  color: #cbd5e1 !important;
+}
+
+html.dark .excel-import-dialog .btn-cancel:hover {
+  background: #334155 !important;
+  color: #ffffff !important;
+}

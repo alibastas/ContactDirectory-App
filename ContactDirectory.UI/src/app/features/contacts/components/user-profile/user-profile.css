@@ -305,3 +305,74 @@
 .btn-save:active {
   transform: translateY(0) !important;
 }
+
+/* ==========================================================================
+   DARK MODE OVERRIDES
+   ========================================================================== */
+html.dark ::ng-deep .user-profile-dialog.p-dialog {
+  background: #131d31 !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.08) !important;
+}
+
+html.dark ::ng-deep .user-profile-dialog .p-dialog-header {
+  background: #131d31 !important;
+  border-bottom-color: #1e293b !important;
+}
+
+html.dark ::ng-deep .user-profile-dialog .p-dialog-content {
+  background: #131d31 !important;
+}
+
+html.dark ::ng-deep .user-profile-dialog .p-dialog-footer {
+  background: #0f172a !important;
+  border-top-color: #1e293b !important;
+}
+
+html.dark .dialog-title {
+  color: #f8fafc;
+}
+
+html.dark .dialog-subtitle {
+  color: #94a3b8;
+}
+
+html.dark .profile-avatar-card {
+  background: #090d16;
+  border-color: #1e293b;
+}
+
+html.dark .profile-username {
+  color: #f8fafc;
+}
+
+html.dark .field-label {
+  color: #cbd5e1;
+}
+
+html.dark .custom-input {
+  background: #090d16 !important;
+  border-color: #1e293b !important;
+  color: #f8fafc !important;
+}
+
+html.dark .custom-input:focus {
+  background: #101726 !important;
+  border-color: #6366f1 !important;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25) !important;
+}
+
+html.dark .input-disabled {
+  background: #090d16 !important;
+  color: #64748b !important;
+  border-color: #1e293b !important;
+}
+
+html.dark .btn-cancel {
+  color: #94a3b8 !important;
+}
+
+html.dark .btn-cancel:hover {
+  background: #1e293b !important;
+  color: #ffffff !important;
+}

@@ -139,6 +139,31 @@
   color: #059669;
 }
 
+/* Dark mode overrides for metric icons */
+:host-context(html.dark) .metric-users .metric-icon {
+  background: rgba(99, 102, 241, 0.2) !important;
+  color: #818cf8 !important;
+}
+:host-context(html.dark) .metric-contacts .metric-icon {
+  background: rgba(14, 165, 233, 0.2) !important;
+  color: #38bdf8 !important;
+}
+:host-context(html.dark) .metric-logs .metric-icon {
+  background: rgba(16, 185, 129, 0.2) !important;
+  color: #34d399 !important;
+}
+
+:host-context(html.dark) .btn-nav-contacts {
+  background: var(--surface-card) !important;
+  border-color: var(--surface-border) !important;
+  color: var(--text-primary) !important;
+}
+:host-context(html.dark) .btn-logout {
+  background: var(--surface-card) !important;
+  border-color: var(--surface-border) !important;
+  color: var(--text-secondary) !important;
+}
+
 .metric-icon {
   width: 58px;
   height: 58px;
@@ -233,6 +258,17 @@
   color: var(--primary-600);
 }
 
+:host-context(html.dark) .admin-tab-btn.active {
+  background: rgba(99, 102, 241, 0.22) !important;
+  color: #c7d2fe !important;
+  border-color: rgba(99, 102, 241, 0.45) !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4) !important;
+}
+
+:host-context(html.dark) .admin-tab-btn.active i {
+  color: #818cf8 !important;
+}
+
 .tab-badge {
   display: inline-flex;
   align-items: center;
@@ -251,6 +287,12 @@
   background: var(--primary-50);
   color: var(--primary-700);
   border-color: var(--primary-200);
+}
+
+:host-context(html.dark) .admin-tab-btn.active .tab-badge {
+  background: rgba(99, 102, 241, 0.35) !important;
+  color: #e0e7ff !important;
+  border-color: rgba(99, 102, 241, 0.6) !important;
 }
 
 /* Tab View Container */

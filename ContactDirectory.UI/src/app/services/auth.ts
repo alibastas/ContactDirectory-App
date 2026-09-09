@@ -34,6 +34,16 @@ export class AuthService {
     return this.http.post<RegisterResponse>(`${this.apiUrl}/register`, request);
   }
 
+  /** Kullanıcı şifresini değiştir */
+  changePassword(request: { currentPassword: string; newPassword: string }): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.apiUrl}/change-password`, request);
+  }
+
+  /** Kullanıcı hesabını ve tüm verilerini kalıcı olarak sil (şifre doğrulamalı) */
+  deleteAccount(password: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.apiUrl}/delete-account`, { password });
+  }
+
   /**
    * Kullanıcı girişi:
    * - rememberMe true ise: localStorage (kalıcı oturum)

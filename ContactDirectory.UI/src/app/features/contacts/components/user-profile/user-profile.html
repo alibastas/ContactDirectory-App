@@ -10,7 +10,7 @@
   styleClass="user-profile-dialog"
 >
   <!-- Custom Header -->
-  <ng-template pTemplate="header">
+  <ng-template #header pTemplate="header">
     <div class="dialog-header-custom">
       <div class="header-icon-badge">
         <i class="pi pi-user-edit"></i>
@@ -112,7 +112,7 @@
   </div>
 
   <!-- Footer Actions -->
-  <ng-template pTemplate="footer">
+  <ng-template #footer pTemplate="footer">
     <div class="dialog-footer-custom">
       <button
         type="button"

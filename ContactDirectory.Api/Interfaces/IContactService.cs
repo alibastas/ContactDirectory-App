@@ -29,5 +29,6 @@ public interface IContactService
         string? phoneNumber = null,
         string? email = null);
     Task<BulkContactResponseDto> BulkCreateContactsAsync(int userId, BulkContactRequestDto request);
+    Task<(bool IsSuccess, int DeletedCount, string Message)> DeleteAllContactsAsync(int userId, string password);
 }
 

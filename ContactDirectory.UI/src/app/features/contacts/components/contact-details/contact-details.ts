@@ -58,7 +58,7 @@ import { ButtonModule } from 'primeng/button';
 
       </div>
 
-      <ng-template pTemplate="footer">
+      <ng-template #footer pTemplate="footer">
         <div class="footer-actions">
           <button pButton label="Kapat" class="p-button-text p-button-secondary" (click)="close()"></button>
           <button pButton icon="pi pi-pencil" label="Düzenle" class="p-button-outlined" (click)="onEdit()"></button>
