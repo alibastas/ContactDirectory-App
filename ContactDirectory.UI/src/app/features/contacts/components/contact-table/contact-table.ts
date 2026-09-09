@@ -1,7 +1,9 @@
 import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { Contact } from '../../../../core/models/contact.model';
 import { TableModule, Table } from 'primeng/table';
+import { isPresetAvatar, getPresetSvg } from '../../../../core/constants/avatars';
 
 @Component({
   selector: 'app-contact-table',
@@ -46,8 +48,10 @@ import { TableModule, Table } from 'primeng/table';
             <!-- Name + Avatar -->
             <td>
               <div class="contact-cell">
-                <div class="contact-avatar" [style.background]="getAvatarGradient(contact.firstName)">
-                  {{ getInitials(contact.firstName, contact.lastName) }}
+                <div class="contact-avatar" [style.background]="!contact.avatarUrl ? getAvatarGradient(contact.firstName) : 'transparent'">
+                  <div *ngIf="isPreset(contact.avatarUrl)" class="contact-avatar-svg" [innerHTML]="getPresetSvg(contact.avatarUrl)"></div>
+                  <img *ngIf="contact.avatarUrl && !isPreset(contact.avatarUrl)" [src]="contact.avatarUrl" alt="" class="contact-avatar-img" />
+                  <span *ngIf="!contact.avatarUrl">{{ getInitials(contact.firstName, contact.lastName) }}</span>
                 </div>
                 <div class="contact-name">
                   <strong>{{ formatName(contact) }}</strong>
@@ -170,6 +174,27 @@ import { TableModule, Table } from 'primeng/table';
       font-weight: 600;
       font-size: 0.9rem;
       box-shadow: var(--shadow-sm);
+      overflow: hidden;
+    }
+    .contact-avatar-svg {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .contact-avatar-svg ::ng-deep svg {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      display: block;
+    }
+    .contact-avatar-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 50%;
+      display: block;
     }
     .contact-name strong {
       color: var(--text-primary);
@@ -369,6 +394,16 @@ export class ContactTableComponent {
 
   onLazyLoadData(event: any) {
     this.lazyLoad.emit(event);
+  }
+
+  constructor(private sanitizer: DomSanitizer) {}
+
+  isPreset(url?: string): boolean {
+    return isPresetAvatar(url);
+  }
+
+  getPresetSvg(url?: string): SafeHtml {
+    return this.sanitizer.bypassSecurityTrustHtml(getPresetSvg(url));
   }
 
   getInitials(firstName: string, lastName: string): string {

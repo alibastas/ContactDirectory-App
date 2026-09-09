@@ -91,4 +91,42 @@ public class AuthController : ControllerBase
 
         return Ok(new { message = result.Message });
     }
+
+    [Authorize]
+    [HttpGet("avatar")]
+    public async Task<IActionResult> GetAvatar()
+    {
+        var userIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userIdStr) || !int.TryParse(userIdStr, out int userId))
+        {
+            return Unauthorized("Geçersiz oturum.");
+        }
+
+        var avatarUrl = await _authService.GetAvatarAsync(userId);
+        return Ok(new { avatarUrl });
+    }
+
+    [Authorize]
+    [HttpPut("avatar")]
+    public async Task<IActionResult> UpdateAvatar([FromBody] AvatarUpdateDto request)
+    {
+        var userIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userIdStr) || !int.TryParse(userIdStr, out int userId))
+        {
+            return Unauthorized("Geçersiz oturum.");
+        }
+
+        var result = await _authService.UpdateAvatarAsync(userId, request.AvatarUrl);
+        if (!result.IsSuccess)
+        {
+            return BadRequest(new { message = result.Message });
+        }
+
+        return Ok(new { avatarUrl = result.AvatarUrl, message = result.Message });
+    }
+}
+
+public class AvatarUpdateDto
+{
+    public string? AvatarUrl { get; set; }
 }

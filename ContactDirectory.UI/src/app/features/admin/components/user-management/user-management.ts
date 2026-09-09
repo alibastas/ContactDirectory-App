@@ -1,10 +1,12 @@
 import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy, signal, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { PaginatorModule } from 'primeng/paginator';
 import { AdminService } from '../../../../services/admin.service';
 import { AuthService } from '../../../../services/auth';
 import { UserSummaryDto } from '../../../../core/models/admin.model';
 import { MessageService } from 'primeng/api';
+import { isPresetAvatar, getPresetSvg } from '../../../../core/constants/avatars';
 
 /**
  * UserManagementComponent — Kullanıcı listesi, rolleri ve yetki yönetimi
@@ -26,6 +28,7 @@ export class UserManagementComponent {
   private adminService = inject(AdminService);
   private authService = inject(AuthService);
   private messageService = inject(MessageService);
+  private sanitizer = inject(DomSanitizer);
 
   @Input() users: UserSummaryDto[] = [];
   @Input() isLoading: boolean = false;
@@ -33,6 +36,40 @@ export class UserManagementComponent {
 
   isUpdatingRoleId = signal<number | null>(null);
   currentUsername = computed(() => this.authService.getUsername());
+
+  isPreset(url?: string): boolean {
+    return isPresetAvatar(url);
+  }
+
+  getPresetSvg(id?: string): SafeHtml {
+    return this.sanitizer.bypassSecurityTrustHtml(getPresetSvg(id));
+  }
+
+  getInitials(username?: string): string {
+    if (!username) return 'U';
+    const clean = username.trim();
+    if (clean.length <= 2) return clean.toUpperCase();
+    return clean.charAt(0).toUpperCase();
+  }
+
+  getAvatarGradient(username?: string): string {
+    const gradients = [
+      'linear-gradient(135deg, #6366f1, #4f46e5)',
+      'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+      'linear-gradient(135deg, #0ea5e9, #0284c7)',
+      'linear-gradient(135deg, #10b981, #059669)',
+      'linear-gradient(135deg, #f59e0b, #d97706)',
+      'linear-gradient(135deg, #ec4899, #be185d)',
+      'linear-gradient(135deg, #8b5cf6, #6d28d9)'
+    ];
+    if (!username) return gradients[0];
+    let hash = 0;
+    for (let i = 0; i < username.length; i++) {
+      hash = username.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const index = Math.abs(hash) % gradients.length;
+    return gradients[index];
+  }
 
   // Sayfalama (Pagination)
   firstRow = signal<number>(0);

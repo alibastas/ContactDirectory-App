@@ -7,4 +7,5 @@ public class ContactUpdateDto
     public string PhoneNumber { get; set; } = string.Empty;
     public string? Email { get; set; }
     public bool IsFavorite { get; set; }
+    public string? AvatarUrl { get; set; }
 }

@@ -33,7 +33,11 @@
           <td><strong>#{{ u.userId }}</strong></td>
           <td>
             <div class="user-cell">
-              <div class="user-avatar-mini">{{ u.username.charAt(0) }}</div>
+              <div class="user-avatar-mini" [style.background]="!u.avatarUrl ? getAvatarGradient(u.username) : 'transparent'">
+                <div *ngIf="isPreset(u.avatarUrl)" class="user-avatar-svg" [innerHTML]="getPresetSvg(u.avatarUrl)"></div>
+                <img *ngIf="u.avatarUrl && !isPreset(u.avatarUrl)" [src]="u.avatarUrl" alt="" class="user-avatar-img" />
+                <span *ngIf="!u.avatarUrl">{{ getInitials(u.username) }}</span>
+              </div>
               <div class="user-name-col">
                 <strong>{{ u.username }}</strong>
                 <span class="you-badge" *ngIf="u.username.toLowerCase() === currentUsername().toLowerCase()">(Siz)</span>

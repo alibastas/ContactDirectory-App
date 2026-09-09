@@ -6,6 +6,7 @@ public class User
     public string Username { get; set; } = string.Empty;
     public string PasswordHash { get; set; } = string.Empty;
     public string Role { get; set; } = "User"; // "Admin" veya "User"
+    public string? AvatarUrl { get; set; }
 
     public ICollection<Contact> Contacts { get; set; } = new List<Contact>();
 }

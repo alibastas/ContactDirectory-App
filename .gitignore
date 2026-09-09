@@ -58,3 +58,6 @@ Desktop.ini
 *.env
 .env.*
 appsettings.Development.json
+
+# Documentation & Agent Scratch
+docs/

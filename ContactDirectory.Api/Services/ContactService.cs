@@ -57,7 +57,8 @@ public class ContactService : IContactService
                     LastName = c.LastName,
                     PhoneNumber = c.PhoneNumber,
                     Email = c.Email,
-                    IsFavorite = c.IsFavorite
+                    IsFavorite = c.IsFavorite,
+                    AvatarUrl = c.AvatarUrl
                 })
                 .ToListAsync();
 
@@ -80,7 +81,8 @@ public class ContactService : IContactService
                     LastName = c.LastName,
                     PhoneNumber = c.PhoneNumber,
                     Email = c.Email,
-                    IsFavorite = c.IsFavorite
+                    IsFavorite = c.IsFavorite,
+                    AvatarUrl = c.AvatarUrl
                 })
                 .ToListAsync();
 
@@ -168,7 +170,8 @@ public class ContactService : IContactService
                 LastName = c.LastName,
                 PhoneNumber = c.PhoneNumber,
                 Email = c.Email,
-                IsFavorite = c.IsFavorite
+                IsFavorite = c.IsFavorite,
+                AvatarUrl = c.AvatarUrl
             })
             .FirstOrDefaultAsync();
     }
@@ -182,6 +185,7 @@ public class ContactService : IContactService
             PhoneNumber = dto.PhoneNumber,
             Email = dto.Email,
             IsFavorite = dto.IsFavorite,
+            AvatarUrl = dto.AvatarUrl,
             UserId = userId
         };
 
@@ -205,7 +209,8 @@ public class ContactService : IContactService
             LastName = contact.LastName,
             PhoneNumber = contact.PhoneNumber,
             Email = contact.Email,
-            IsFavorite = contact.IsFavorite
+            IsFavorite = contact.IsFavorite,
+            AvatarUrl = contact.AvatarUrl
         };
     }
 
@@ -226,11 +231,12 @@ public class ContactService : IContactService
             string.Equals(existing.PhoneNumber?.Trim(), dto.PhoneNumber?.Trim(), StringComparison.Ordinal) &&
             string.Equals(existing.Email?.Trim() ?? "", dto.Email?.Trim() ?? "", StringComparison.OrdinalIgnoreCase);
 
-        existing.FirstName = dto.FirstName;
-        existing.LastName = dto.LastName;
-        existing.PhoneNumber = dto.PhoneNumber;
+        existing.FirstName = dto.FirstName ?? string.Empty;
+        existing.LastName = dto.LastName ?? string.Empty;
+        existing.PhoneNumber = dto.PhoneNumber ?? string.Empty;
         existing.Email = dto.Email;
         existing.IsFavorite = dto.IsFavorite;
+        existing.AvatarUrl = dto.AvatarUrl;
 
         await _context.SaveChangesAsync();
 
@@ -335,7 +341,8 @@ public class ContactService : IContactService
                 LastName = c.LastName,
                 PhoneNumber = c.PhoneNumber,
                 Email = c.Email,
-                IsFavorite = c.IsFavorite
+                IsFavorite = c.IsFavorite,
+                AvatarUrl = c.AvatarUrl
             })
             .ToListAsync();
 
@@ -507,6 +514,7 @@ public class ContactService : IContactService
                         PhoneNumber = rawPhone,
                         Email = email,
                         IsFavorite = dto.IsFavorite,
+                        AvatarUrl = dto.AvatarUrl,
                         UserId = userId
                     };
                     newEntitiesToAdd.Add(entity);
@@ -523,6 +531,7 @@ public class ContactService : IContactService
                     PhoneNumber = rawPhone,
                     Email = email,
                     IsFavorite = dto.IsFavorite,
+                    AvatarUrl = dto.AvatarUrl,
                     UserId = userId
                 };
                 newEntitiesToAdd.Add(entity);

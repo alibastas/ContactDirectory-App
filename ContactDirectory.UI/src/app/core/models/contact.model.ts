@@ -9,6 +9,7 @@ export interface Contact {
   phoneNumber: string;
   email?: string;
   isFavorite?: boolean;
+  avatarUrl?: string;
 }
 
 export interface PagedResult<T> {

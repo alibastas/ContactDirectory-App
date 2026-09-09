@@ -4,30 +4,36 @@ import { FormsModule } from '@angular/forms';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { ButtonModule } from 'primeng/button';
+import { AvatarPickerComponent } from '../../../../shared/components/avatar-picker/avatar-picker';
 
 export interface UserProfileData {
   username: string;
   email: string;
   country: string;
+  avatarUrl?: string;
 }
 
 @Component({
   selector: 'app-user-profile',
   standalone: true,
-  imports: [CommonModule, FormsModule, DialogModule, InputTextModule, ButtonModule],
+  imports: [CommonModule, FormsModule, DialogModule, InputTextModule, ButtonModule, AvatarPickerComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './user-profile.html',
   styleUrl: './user-profile.css'
 })
 export class UserProfileComponent {
   @Input() visible: boolean = false;
-  @Input() profileData: UserProfileData = { username: '', email: '', country: '' };
+  @Input() profileData: UserProfileData = { username: '', email: '', country: '', avatarUrl: '' };
   
   @Output() visibleChange = new EventEmitter<boolean>();
   @Output() saveProfile = new EventEmitter<UserProfileData>();
 
   onVisibleChange(val: boolean) {
     this.visibleChange.emit(val);
+  }
+
+  onAvatarChange(url?: string) {
+    this.profileData.avatarUrl = url;
   }
 
   getInitials(username?: string): string {

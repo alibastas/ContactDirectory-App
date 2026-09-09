@@ -1,5 +1,6 @@
-import { Component, OnInit, ChangeDetectionStrategy, signal, computed, HostListener } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, signal, computed, HostListener, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { ContactService, AdvancedSearchParams } from '../../services/contact.service';
 import { Contact } from '../../core/models/contact.model';
 import { Router } from '@angular/router';
@@ -17,6 +18,7 @@ import { UserProfileComponent, UserProfileData } from '../../features/contacts/c
 import { ContactDetailsComponent } from '../../features/contacts/components/contact-details/contact-details';
 import { ExcelImportDialogComponent } from '../../features/contacts/components/excel-import/excel-import-dialog';
 import { ExcelService } from '../../services/excel.service';
+import { isPresetAvatar, getPresetSvg } from '../../core/constants/avatars';
 
 @Component({
   selector: 'app-contact',
@@ -109,8 +111,10 @@ import { ExcelService } from '../../services/excel.service';
           <button class="btn-settings" (click)="goToSettings()" title="Ayarlar">
             <i class="pi pi-cog"></i>
           </button>
-          <div class="user-avatar" title="Kullanıcı" (click)="openProfile()" style="cursor: pointer;">
-            <i class="pi pi-user"></i>
+          <div class="user-avatar" title="Kullanıcı Profili" (click)="openProfile()" style="cursor: pointer;">
+            <div *ngIf="isPreset(profileData().avatarUrl)" class="topbar-avatar-svg" [innerHTML]="getPresetSvg(profileData().avatarUrl)"></div>
+            <img *ngIf="profileData().avatarUrl && !isPreset(profileData().avatarUrl)" [src]="profileData().avatarUrl" alt="Avatar" class="topbar-avatar-img">
+            <i *ngIf="!profileData().avatarUrl" class="pi pi-user"></i>
           </div>
           <button class="btn-logout" (click)="logout()" title="Çıkış Yap">
             <i class="pi pi-power-off"></i>
@@ -465,8 +469,8 @@ import { ExcelService } from '../../services/excel.service';
     }
 
     .user-avatar {
-      width: 36px;
-      height: 36px;
+      width: 38px;
+      height: 38px;
       border-radius: 50%;
       background: linear-gradient(135deg, var(--primary-500), var(--accent-500));
       color: white;
@@ -477,10 +481,33 @@ import { ExcelService } from '../../services/excel.service';
       font-weight: 600;
       border: 2px solid white;
       box-shadow: var(--shadow-sm);
-      transition: transform var(--transition-fast);
+      transition: all var(--transition-fast);
+      overflow: hidden;
+      flex-shrink: 0;
     }
     .user-avatar:hover {
-      transform: scale(1.05);
+      transform: scale(1.08);
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
+    }
+
+    .topbar-avatar-svg {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .topbar-avatar-svg ::ng-deep svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .topbar-avatar-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
     }
 
     .main-content {
@@ -553,8 +580,19 @@ export class ContactComponent implements OnInit {
   showProfileDialog = signal(false);
   showImportDialogVisible = signal(false);
   currentImportType = signal<'excel' | 'csv'>('excel');
-  profileData = signal<UserProfileData>({ username: '', email: '', country: '' });
+  profileData = signal<UserProfileData>({ username: '', email: '', country: '', avatarUrl: '' });
   
+  private sanitizer = inject(DomSanitizer);
+
+  isPreset(url?: string): boolean {
+    return isPresetAvatar(url);
+  }
+
+  getPresetSvg(url?: string): SafeHtml {
+    const svg = getPresetSvg(url);
+    return this.sanitizer.bypassSecurityTrustHtml(svg);
+  }
+
   showContactDetails = signal(false);
   selectedContact = signal<Contact | null>(null);
 
@@ -608,10 +646,27 @@ export class ContactComponent implements OnInit {
 
   ngOnInit(): void {
     const username = this.authService.getUsername();
+    const cachedAvatar = localStorage.getItem(`profile_avatar_${username}`) || '';
     this.profileData.set({
       username: username,
       email: localStorage.getItem(`profile_email_${username}`) || '',
-      country: localStorage.getItem(`profile_country_${username}`) || ''
+      country: localStorage.getItem(`profile_country_${username}`) || '',
+      avatarUrl: cachedAvatar
+    });
+
+    this.authService.getAvatar().subscribe({
+      next: (res) => {
+        if (res?.avatarUrl !== undefined) {
+          const avatar = res.avatarUrl || '';
+          this.profileData.update(p => ({ ...p, avatarUrl: avatar }));
+          if (avatar) {
+            localStorage.setItem(`profile_avatar_${username}`, avatar);
+          } else {
+            localStorage.removeItem(`profile_avatar_${username}`);
+          }
+        }
+      },
+      error: () => {}
     });
 
     const savedFormat = localStorage.getItem('contact_name_format') as 'first-last' | 'last-first';
@@ -862,6 +917,17 @@ export class ContactComponent implements OnInit {
     this.profileData.set(data);
     localStorage.setItem(`profile_email_${data.username}`, data.email);
     localStorage.setItem(`profile_country_${data.username}`, data.country);
+    if (data.avatarUrl) {
+      localStorage.setItem(`profile_avatar_${data.username}`, data.avatarUrl);
+    } else {
+      localStorage.removeItem(`profile_avatar_${data.username}`);
+    }
+
+    this.authService.updateAvatar(data.avatarUrl || null).subscribe({
+      next: () => {},
+      error: (err) => console.error('Avatar sunucuya kaydedilemedi', err)
+    });
+
     this.messageService.add({ severity: 'success', summary: 'Başarılı', detail: 'Profil bilgileri güncellendi.' });
     this.showProfileDialog.set(false);
   }

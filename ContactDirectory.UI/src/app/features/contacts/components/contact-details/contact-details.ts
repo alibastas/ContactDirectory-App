@@ -1,8 +1,10 @@
-import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { Contact } from '../../../../core/models/contact.model';
 import { DialogModule } from 'primeng/dialog';
 import { ButtonModule } from 'primeng/button';
+import { isPresetAvatar, getPresetSvg } from '../../../../core/constants/avatars';
 
 @Component({
   selector: 'app-contact-details',
@@ -25,8 +27,12 @@ import { ButtonModule } from 'primeng/button';
       <div class="details-content" *ngIf="contact">
         
         <div class="header-section">
-          <div class="avatar" [style.background]="getAvatarGradient(contact.firstName)">
-            {{ getInitials(contact.firstName, contact.lastName) }}
+          <div class="avatar-wrapper">
+            <div *ngIf="isPreset(contact.avatarUrl)" class="details-avatar-svg" [innerHTML]="getPresetSvg(contact.avatarUrl)"></div>
+            <img *ngIf="contact.avatarUrl && !isPreset(contact.avatarUrl)" [src]="contact.avatarUrl" alt="Avatar" class="details-avatar-img">
+            <div *ngIf="!contact.avatarUrl" class="avatar" [style.background]="getAvatarGradient(contact.firstName)">
+              {{ getInitials(contact.firstName, contact.lastName) }}
+            </div>
           </div>
           <h2 class="name">{{ contact.firstName }} {{ contact.lastName }}</h2>
           <div class="fav-badge" *ngIf="contact.isFavorite">
@@ -93,9 +99,14 @@ import { ButtonModule } from 'primeng/button';
       border-bottom: 1px solid var(--surface-border-light);
     }
 
+    .avatar-wrapper {
+      position: relative;
+      margin-bottom: 1rem;
+    }
+
     .avatar {
-      width: 80px;
-      height: 80px;
+      width: 84px;
+      height: 84px;
       border-radius: 50%;
       display: flex;
       align-items: center;
@@ -103,8 +114,36 @@ import { ButtonModule } from 'primeng/button';
       color: white;
       font-size: 2rem;
       font-weight: 600;
-      margin-bottom: 1rem;
       box-shadow: var(--shadow-md);
+    }
+
+    .details-avatar-svg {
+      width: 84px;
+      height: 84px;
+      border-radius: 50%;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: var(--shadow-md);
+      border: 3px solid var(--surface-card);
+      background: var(--surface-card);
+    }
+
+    .details-avatar-svg ::ng-deep svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .details-avatar-img {
+      width: 84px;
+      height: 84px;
+      border-radius: 50%;
+      object-fit: cover;
+      box-shadow: var(--shadow-md);
+      border: 3px solid var(--surface-card);
+      display: block;
     }
 
     .name {
@@ -201,6 +240,17 @@ export class ContactDetailsComponent {
   
   @Output() visibleChange = new EventEmitter<boolean>();
   @Output() edit = new EventEmitter<number>();
+
+  private sanitizer = inject(DomSanitizer);
+
+  isPreset(url?: string): boolean {
+    return isPresetAvatar(url);
+  }
+
+  getPresetSvg(url?: string): SafeHtml {
+    const svg = getPresetSvg(url);
+    return this.sanitizer.bypassSecurityTrustHtml(svg);
+  }
 
   private avatarGradients = [
     'linear-gradient(135deg, #6366f1, #818cf8)',

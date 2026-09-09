@@ -3,6 +3,7 @@ export interface UserSummaryDto {
   username: string;
   role: string;
   contactCount: number;
+  avatarUrl?: string;
 }
 
 export interface AdminDashboardDto {

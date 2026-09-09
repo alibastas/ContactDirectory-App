@@ -10,5 +10,7 @@ public interface IAuthService
     Task<(bool IsSuccess, string Token, string Role, string Message)> RefreshTokenAsync(ClaimsPrincipal userPrincipal);
     Task<(bool IsSuccess, string Message)> ChangePasswordAsync(int userId, ChangePasswordDto request);
     Task<(bool IsSuccess, string Message)> DeleteAccountAsync(int userId, string password);
+    Task<(bool IsSuccess, string? AvatarUrl, string Message)> UpdateAvatarAsync(int userId, string? avatarUrl);
+    Task<string?> GetAvatarAsync(int userId);
 }
 

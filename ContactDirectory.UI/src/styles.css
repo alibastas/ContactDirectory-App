@@ -193,6 +193,41 @@ app-login {
   background: var(--primary-300);
 }
 
+/* Avatar Picker Scrollbar Styling */
+.avatar-scroll-viewport::-webkit-scrollbar {
+  width: 8px !important;
+  display: block !important;
+}
+
+.avatar-scroll-viewport::-webkit-scrollbar-track {
+  background: #f1f5f9 !important;
+  border-radius: 9999px !important;
+  margin: 6px 0 !important;
+}
+
+.avatar-scroll-viewport::-webkit-scrollbar-thumb {
+  background: #94a3b8 !important;
+  border-radius: 9999px !important;
+  border: 2px solid #f1f5f9 !important;
+}
+
+.avatar-scroll-viewport::-webkit-scrollbar-thumb:hover {
+  background: #6366f1 !important;
+}
+
+html.dark .avatar-scroll-viewport::-webkit-scrollbar-track {
+  background: #1e293b !important;
+}
+
+html.dark .avatar-scroll-viewport::-webkit-scrollbar-thumb {
+  background: #64748b !important;
+  border-color: #1e293b !important;
+}
+
+html.dark .avatar-scroll-viewport::-webkit-scrollbar-thumb:hover {
+  background: #818cf8 !important;
+}
+
 /* --- Global Keyframe Animations --- */
 @keyframes fadeInUp {
   from {
@@ -913,6 +948,222 @@ html.dark .excel-import-dialog .btn-cancel {
 }
 
 html.dark .excel-import-dialog .btn-cancel:hover {
+  background: #334155 !important;
+  color: #ffffff !important;
+}
+
+/* ==========================================================================
+   GLOBAL DARK THEME OVERRIDES FOR USER PROFILE & AVATAR PICKER
+   ========================================================================== */
+html.dark .user-profile-dialog.p-dialog,
+html.dark .avatar-picker-dialog.p-dialog {
+  background: #131d31 !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.08) !important;
+}
+
+html.dark .user-profile-dialog .p-dialog-header,
+html.dark .avatar-picker-dialog .p-dialog-header {
+  background: #131d31 !important;
+  border-bottom-color: #1e293b !important;
+}
+
+html.dark .user-profile-dialog .p-dialog-content,
+html.dark .avatar-picker-dialog .p-dialog-content {
+  background: #131d31 !important;
+}
+
+html.dark .user-profile-dialog .p-dialog-footer,
+html.dark .avatar-picker-dialog .p-dialog-footer {
+  background: #0f172a !important;
+  border-top-color: #1e293b !important;
+}
+
+html.dark .user-profile-dialog .header-icon-badge,
+html.dark .avatar-picker-dialog .header-icon-badge {
+  background: rgba(99, 102, 241, 0.18) !important;
+  color: #818cf8 !important;
+  border-color: rgba(99, 102, 241, 0.3) !important;
+}
+
+html.dark .user-profile-dialog .dialog-title,
+html.dark .avatar-picker-dialog .dialog-title {
+  color: #f8fafc !important;
+}
+
+html.dark .user-profile-dialog .dialog-subtitle,
+html.dark .avatar-picker-dialog .dialog-subtitle {
+  color: #94a3b8 !important;
+}
+
+html.dark .user-profile-dialog .p-dialog-header-actions .p-dialog-close-button,
+html.dark .avatar-picker-dialog .p-dialog-header-actions .p-dialog-close-button {
+  color: #94a3b8 !important;
+}
+
+html.dark .user-profile-dialog .p-dialog-header-actions .p-dialog-close-button:hover,
+html.dark .avatar-picker-dialog .p-dialog-header-actions .p-dialog-close-button:hover {
+  background: #1e293b !important;
+  color: #f8fafc !important;
+  border-color: #334155 !important;
+}
+
+/* User Profile Identity Card & Form */
+html.dark .user-profile-dialog .profile-avatar-card {
+  background: #090d16 !important;
+  border-color: #1e293b !important;
+}
+
+html.dark .user-profile-dialog .profile-username {
+  color: #f8fafc !important;
+}
+
+html.dark .user-profile-dialog .profile-role-badge {
+  background: rgba(16, 185, 129, 0.15) !important;
+  color: #34d399 !important;
+  border-color: rgba(16, 185, 129, 0.3) !important;
+}
+
+html.dark .user-profile-dialog .profile-avatar-hint {
+  color: #94a3b8 !important;
+}
+
+html.dark .user-profile-dialog .field-label {
+  color: #cbd5e1 !important;
+}
+
+html.dark .user-profile-dialog .field-label i {
+  color: #818cf8 !important;
+}
+
+html.dark .user-profile-dialog .field-hint {
+  color: #64748b !important;
+}
+
+html.dark .user-profile-dialog .readonly-badge {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+  color: #94a3b8 !important;
+}
+
+html.dark .user-profile-dialog .custom-input {
+  background: #090d16 !important;
+  border-color: #1e293b !important;
+  color: #f8fafc !important;
+}
+
+html.dark .user-profile-dialog .custom-input:focus {
+  background: #101726 !important;
+  border-color: #6366f1 !important;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25) !important;
+}
+
+html.dark .user-profile-dialog .input-disabled {
+  background: #090d16 !important;
+  color: #94a3b8 !important;
+  border-color: #1e293b !important;
+}
+
+html.dark .user-profile-dialog .btn-cancel {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+  color: #cbd5e1 !important;
+}
+
+html.dark .user-profile-dialog .btn-cancel:hover {
+  background: #334155 !important;
+  color: #ffffff !important;
+  border-color: #475569 !important;
+}
+
+/* Avatar Picker Cards & Sections */
+html.dark .avatar-picker-dialog .upload-action-card {
+  background: #090d16 !important;
+  border-color: #1e293b !important;
+}
+
+html.dark .avatar-picker-dialog .upload-action-card:hover {
+  background: rgba(99, 102, 241, 0.08) !important;
+  border-color: #818cf8 !important;
+}
+
+html.dark .avatar-picker-dialog .upload-icon-box {
+  background: rgba(99, 102, 241, 0.2) !important;
+  color: #818cf8 !important;
+}
+
+html.dark .avatar-picker-dialog .upload-text strong {
+  color: #f8fafc !important;
+}
+
+html.dark .avatar-picker-dialog .upload-text span {
+  color: #94a3b8 !important;
+}
+
+html.dark .avatar-picker-dialog .male-pill {
+  background: rgba(59, 130, 246, 0.18) !important;
+  color: #60a5fa !important;
+  border-color: rgba(59, 130, 246, 0.35) !important;
+}
+
+html.dark .avatar-picker-dialog .female-pill {
+  background: rgba(236, 72, 153, 0.18) !important;
+  color: #f472b6 !important;
+  border-color: rgba(236, 72, 153, 0.35) !important;
+}
+
+html.dark .avatar-picker-dialog .avatar-option-card {
+  background: #090d16 !important;
+  border-color: #1e293b !important;
+}
+
+html.dark .avatar-picker-dialog .avatar-option-card:hover {
+  background: #111a2e !important;
+  border-color: #818cf8 !important;
+  box-shadow: 0 6px 18px rgba(99, 102, 241, 0.25) !important;
+}
+
+html.dark .avatar-picker-dialog .avatar-option-card.selected {
+  background: rgba(99, 102, 241, 0.18) !important;
+  border-color: #818cf8 !important;
+  box-shadow: 0 0 0 2px #818cf8 !important;
+}
+
+html.dark .avatar-picker-dialog .avatar-scroll-viewport::-webkit-scrollbar-track {
+  background: #090d16 !important;
+}
+
+html.dark .avatar-picker-dialog .avatar-scroll-viewport::-webkit-scrollbar-thumb {
+  background: #334155 !important;
+  border-color: #090d16 !important;
+}
+
+html.dark .avatar-picker-dialog .avatar-scroll-viewport::-webkit-scrollbar-thumb:hover {
+  background: #818cf8 !important;
+}
+
+html.dark .avatar-picker-dialog .avatar-scroll-viewport {
+  scrollbar-color: #334155 #090d16 !important;
+}
+
+html.dark .avatar-picker-dialog .btn-remove-avatar {
+  background: rgba(239, 68, 68, 0.15) !important;
+  border-color: rgba(239, 68, 68, 0.35) !important;
+  color: #f87171 !important;
+}
+
+html.dark .avatar-picker-dialog .btn-remove-avatar:hover {
+  background: rgba(239, 68, 68, 0.25) !important;
+  border-color: #ef4444 !important;
+}
+
+html.dark .avatar-picker-dialog .btn-close-modal {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+  color: #cbd5e1 !important;
+}
+
+html.dark .avatar-picker-dialog .btn-close-modal:hover {
   background: #334155 !important;
   color: #ffffff !important;
 }

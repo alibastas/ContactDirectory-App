@@ -44,6 +44,16 @@ export class AuthService {
     return this.http.post<{ message: string }>(`${this.apiUrl}/delete-account`, { password });
   }
 
+  /** Kullanıcının avatarını getir */
+  getAvatar(): Observable<{ avatarUrl: string | null }> {
+    return this.http.get<{ avatarUrl: string | null }>(`${this.apiUrl}/avatar`);
+  }
+
+  /** Kullanıcının avatarını güncelle */
+  updateAvatar(avatarUrl: string | null): Observable<{ message: string; avatarUrl: string | null }> {
+    return this.http.put<{ message: string; avatarUrl: string | null }>(`${this.apiUrl}/avatar`, { avatarUrl });
+  }
+
   /**
    * Kullanıcı girişi:
    * - rememberMe true ise: localStorage (kalıcı oturum)

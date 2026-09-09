@@ -12,6 +12,7 @@ import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 
 import { TopbarComponent } from '../../shared/components/topbar/topbar';
+import { AvatarPickerComponent } from '../../shared/components/avatar-picker/avatar-picker';
 
 @Component({
   selector: 'app-contact-form',
@@ -19,7 +20,7 @@ import { TopbarComponent } from '../../shared/components/topbar/topbar';
   imports: [
     CommonModule, FormsModule,
     InputTextModule, ButtonModule, ToastModule,
-    TopbarComponent
+    TopbarComponent, AvatarPickerComponent
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -45,10 +46,14 @@ import { TopbarComponent } from '../../shared/components/topbar/topbar';
 
         <div class="card form-card-centered" *ngIf="!isLoading()">
           <div class="card-header">
-            <div class="card-header-icon" [class.editing]="isEditing()">
-              <i class="pi" [ngClass]="{'pi-user-edit': isEditing(), 'pi-user-plus': !isEditing()}"></i>
-            </div>
+            <app-avatar-picker
+              [avatarUrl]="activeContact.avatarUrl"
+              [initials]="getInitials()"
+              [size]="84"
+              (avatarChange)="onAvatarChange($event)">
+            </app-avatar-picker>
             <h2>{{ isEditing() ? 'Kişiyi Düzenle' : 'Yeni Kişi Ekle' }}</h2>
+            <p class="avatar-hint">Profil fotoğrafı eklemek için dokunun</p>
           </div>
 
           <form (ngSubmit)="onSubmit()" class="contact-form">
@@ -60,7 +65,7 @@ import { TopbarComponent } from '../../shared/components/topbar/topbar';
                 </span>
               </label>
               <input type="text" id="contact-firstName" pInputText [(ngModel)]="activeContact.firstName" name="firstName"
-                placeholder="Örn: Ahmet" class="custom-input" required />
+                placeholder="Ad" class="custom-input" required />
             </div>
 
             <div class="form-field">
@@ -71,7 +76,7 @@ import { TopbarComponent } from '../../shared/components/topbar/topbar';
                 </span>
               </label>
               <input type="text" id="contact-lastName" pInputText [(ngModel)]="activeContact.lastName" name="lastName"
-                placeholder="Örn: Yılmaz" class="custom-input" required />
+                placeholder="Soyad" class="custom-input" required />
             </div>
 
             <div class="form-field">
@@ -190,6 +195,13 @@ import { TopbarComponent } from '../../shared/components/topbar/topbar';
       font-weight: 700;
       color: var(--text-primary);
       margin: 0;
+    }
+
+    .avatar-hint {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin: 0.15rem 0 0 0;
+      font-weight: 500;
     }
 
     .contact-form {
@@ -452,7 +464,8 @@ export class ContactFormComponent implements OnInit {
           firstName: contact.firstName || '',
           lastName: contact.lastName || '',
           phoneNumber: contact.phoneNumber || '',
-          email: contact.email || ''
+          email: contact.email || '',
+          avatarUrl: contact.avatarUrl || undefined
         };
         this.isLoading.set(false);
       },
@@ -463,6 +476,17 @@ export class ContactFormComponent implements OnInit {
         setTimeout(() => this.goBack(), 1500);
       }
     });
+  }
+
+  getInitials(): string {
+    const fn = (this.activeContact.firstName || '').trim();
+    const ln = (this.activeContact.lastName || '').trim();
+    if (!fn && !ln) return '?';
+    return ((fn[0] || '') + (ln[0] || '')).toUpperCase();
+  }
+
+  onAvatarChange(url?: string): void {
+    this.activeContact.avatarUrl = url;
   }
 
   goBack() {

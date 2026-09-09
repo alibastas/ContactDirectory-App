@@ -2,10 +2,11 @@
   [visible]="visible"
   (visibleChange)="onVisibleChange($event)"
   [modal]="true"
+  appendTo="body"
   [draggable]="false"
   [resizable]="false"
   [dismissableMask]="true"
-  [style]="{ width: '440px', 'max-width': '95vw' }"
+  [style]="{ width: '440px', 'max-width': '95vw', height: '620px', 'max-height': '92vh' }"
   [breakpoints]="{ '640px': '95vw' }"
   styleClass="user-profile-dialog"
 >
@@ -26,10 +27,13 @@
   <div class="profile-content">
     <!-- Avatar & Identity Card -->
     <div class="profile-avatar-card">
-      <div class="avatar-ring">
-        <div class="profile-avatar-large">
-          <span>{{ getInitials(profileData.username) }}</span>
-        </div>
+      <div class="avatar-picker-wrap">
+        <app-avatar-picker
+          [avatarUrl]="profileData.avatarUrl"
+          [initials]="getInitials(profileData.username)"
+          [size]="76"
+          (avatarChange)="onAvatarChange($event)"
+        ></app-avatar-picker>
       </div>
       <div class="profile-identity">
         <h4 class="profile-username">{{ profileData.username || 'Kullanıcı' }}</h4>
@@ -37,6 +41,7 @@
           <span class="status-dot"></span>
           <span>Aktif Oturum</span>
         </div>
+        <span class="profile-avatar-hint">Fotoğrafı değiştirmek için üzerine dokunun</span>
       </div>
     </div>
 
@@ -116,20 +121,20 @@
     <div class="dialog-footer-custom">
       <button
         type="button"
-        pButton
-        label="Vazgeç"
-        icon="pi pi-times"
-        class="p-button-text p-button-secondary btn-cancel"
+        class="btn-cancel"
         (click)="close()"
-      ></button>
+      >
+        <i class="pi pi-times"></i>
+        <span>Vazgeç</span>
+      </button>
       <button
         type="button"
-        pButton
-        label="Değişiklikleri Kaydet"
-        icon="pi pi-check"
         class="btn-save"
         (click)="onSave()"
-      ></button>
+      >
+        <i class="pi pi-check"></i>
+        <span>Değişiklikleri Kaydet</span>
+      </button>
     </div>
   </ng-template>
 </p-dialog>

@@ -79,7 +79,8 @@ public class AuditLogService : IAuditLogService
                 UserId = u.Id,
                 Username = u.Username,
                 Role = u.Role,
-                ContactCount = u.Contacts.Count()
+                ContactCount = u.Contacts.Count(),
+                AvatarUrl = u.AvatarUrl
             })
             .OrderByDescending(u => u.ContactCount)
             .ToListAsync();

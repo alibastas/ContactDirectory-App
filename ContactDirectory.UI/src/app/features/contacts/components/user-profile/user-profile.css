@@ -3,28 +3,38 @@
    ========================================================================== */
 
 ::ng-deep .user-profile-dialog.p-dialog {
+  width: 440px !important;
+  max-width: 95vw !important;
+  height: 620px !important;
+  max-height: 92vh !important;
   border-radius: 20px !important;
   overflow: hidden !important;
   border: 1px solid rgba(226, 232, 240, 0.8) !important;
   box-shadow: 0 25px 60px -15px rgba(15, 23, 42, 0.25), 0 0 0 1px rgba(226, 232, 240, 0.6) !important;
   background: #ffffff !important;
+  display: flex !important;
+  flex-direction: column !important;
 }
 
 ::ng-deep .user-profile-dialog .p-dialog-header {
   background: linear-gradient(to bottom, #ffffff, #fafbfe) !important;
   border-bottom: 1px solid #f1f5f9 !important;
   padding: 1.25rem 1.5rem 1.1rem 1.5rem !important;
+  flex-shrink: 0 !important;
 }
 
 ::ng-deep .user-profile-dialog .p-dialog-content {
   background: #ffffff !important;
-  padding: 1.5rem 1.5rem 0.5rem 1.5rem !important;
+  padding: 1.4rem 1.5rem 0.5rem 1.5rem !important;
+  flex: 1 1 auto !important;
+  overflow-y: auto !important;
 }
 
 ::ng-deep .user-profile-dialog .p-dialog-footer {
   background: #f8fafc !important;
   border-top: 1px solid #f1f5f9 !important;
   padding: 1rem 1.5rem !important;
+  flex-shrink: 0 !important;
 }
 
 ::ng-deep .user-profile-dialog .p-dialog-header-actions .p-dialog-close-button {
@@ -103,6 +113,10 @@
   border-radius: 16px;
 }
 
+.avatar-picker-wrap {
+  flex-shrink: 0;
+}
+
 .avatar-ring {
   padding: 3px;
   background: linear-gradient(135deg, #6366f1, #a855f7);
@@ -124,6 +138,12 @@
   font-weight: 700;
   letter-spacing: 0.05em;
   border: 2px solid #ffffff;
+}
+
+.profile-avatar-hint {
+  font-size: 0.72rem;
+  color: #64748b;
+  font-weight: 500;
 }
 
 .profile-identity {
@@ -267,24 +287,32 @@
 }
 
 .btn-cancel {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.45rem !important;
   border-radius: 10px !important;
+  border: 1px solid #cbd5e1 !important;
+  background: #f1f5f9 !important;
+  color: #475569 !important;
   font-weight: 600 !important;
   font-size: 0.85rem !important;
-  color: #64748b !important;
-  padding: 0.6rem 1rem !important;
+  padding: 0.62rem 1.15rem !important;
+  cursor: pointer !important;
   transition: all 0.2s ease !important;
 }
 
 .btn-cancel:hover {
   background: #e2e8f0 !important;
   color: #0f172a !important;
+  border-color: #94a3b8 !important;
 }
 
 .btn-save {
   display: inline-flex !important;
   align-items: center !important;
+  justify-content: center !important;
   gap: 0.5rem !important;
-  padding: 0.62rem 1.25rem !important;
+  padding: 0.62rem 1.35rem !important;
   border-radius: 10px !important;
   border: none !important;
   background: linear-gradient(135deg, #4f46e5, #6366f1) !important;
@@ -294,6 +322,7 @@
   cursor: pointer !important;
   box-shadow: 0 4px 14px rgba(79, 70, 229, 0.3) !important;
   transition: all 0.2s ease !important;
+  white-space: nowrap !important;
 }
 
 .btn-save:hover {
@@ -329,50 +358,93 @@ html.dark ::ng-deep .user-profile-dialog .p-dialog-footer {
   border-top-color: #1e293b !important;
 }
 
-html.dark .dialog-title {
-  color: #f8fafc;
+html.dark ::ng-deep .user-profile-dialog .header-icon-badge {
+  background: rgba(99, 102, 241, 0.18) !important;
+  color: #818cf8 !important;
+  border-color: rgba(99, 102, 241, 0.3) !important;
 }
 
-html.dark .dialog-subtitle {
-  color: #94a3b8;
+html.dark ::ng-deep .user-profile-dialog .dialog-title {
+  color: #f8fafc !important;
 }
 
-html.dark .profile-avatar-card {
-  background: #090d16;
-  border-color: #1e293b;
+html.dark ::ng-deep .user-profile-dialog .dialog-subtitle {
+  color: #94a3b8 !important;
 }
 
-html.dark .profile-username {
-  color: #f8fafc;
+html.dark ::ng-deep .user-profile-dialog .p-dialog-header-actions .p-dialog-close-button {
+  color: #94a3b8 !important;
 }
 
-html.dark .field-label {
-  color: #cbd5e1;
+html.dark ::ng-deep .user-profile-dialog .p-dialog-header-actions .p-dialog-close-button:hover {
+  background: #1e293b !important;
+  color: #f8fafc !important;
+  border-color: #334155 !important;
 }
 
-html.dark .custom-input {
+html.dark ::ng-deep .user-profile-dialog .profile-avatar-card {
+  background: #090d16 !important;
+  border-color: #1e293b !important;
+}
+
+html.dark ::ng-deep .user-profile-dialog .profile-username {
+  color: #f8fafc !important;
+}
+
+html.dark ::ng-deep .user-profile-dialog .profile-role-badge {
+  background: rgba(16, 185, 129, 0.15) !important;
+  color: #34d399 !important;
+  border-color: rgba(16, 185, 129, 0.3) !important;
+}
+
+html.dark ::ng-deep .user-profile-dialog .profile-avatar-hint {
+  color: #94a3b8 !important;
+}
+
+html.dark ::ng-deep .user-profile-dialog .field-label {
+  color: #cbd5e1 !important;
+}
+
+html.dark ::ng-deep .user-profile-dialog .field-label i {
+  color: #818cf8 !important;
+}
+
+html.dark ::ng-deep .user-profile-dialog .field-hint {
+  color: #64748b !important;
+}
+
+html.dark ::ng-deep .user-profile-dialog .readonly-badge {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+  color: #94a3b8 !important;
+}
+
+html.dark ::ng-deep .user-profile-dialog .custom-input {
   background: #090d16 !important;
   border-color: #1e293b !important;
   color: #f8fafc !important;
 }
 
-html.dark .custom-input:focus {
+html.dark ::ng-deep .user-profile-dialog .custom-input:focus {
   background: #101726 !important;
   border-color: #6366f1 !important;
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25) !important;
 }
 
-html.dark .input-disabled {
+html.dark ::ng-deep .user-profile-dialog .input-disabled {
   background: #090d16 !important;
-  color: #64748b !important;
+  color: #94a3b8 !important;
   border-color: #1e293b !important;
 }
 
-html.dark .btn-cancel {
-  color: #94a3b8 !important;
+html.dark ::ng-deep .user-profile-dialog .btn-cancel {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+  color: #cbd5e1 !important;
 }
 
-html.dark .btn-cancel:hover {
-  background: #1e293b !important;
+html.dark ::ng-deep .user-profile-dialog .btn-cancel:hover {
+  background: #334155 !important;
   color: #ffffff !important;
+  border-color: #475569 !important;
 }

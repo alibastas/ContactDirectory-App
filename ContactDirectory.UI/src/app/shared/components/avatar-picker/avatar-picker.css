@@ -1,0 +1,631 @@
+/* ==========================================================================
+   AVATAR TRIGGER WRAPPER & BADGE
+   ========================================================================== */
+.avatar-trigger-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  user-select: none;
+}
+
+.avatar-trigger-wrapper.editable {
+  cursor: pointer;
+}
+
+.avatar-circle {
+  border-radius: 50%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12), 0 0 0 2px rgba(255, 255, 255, 0.9);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  background: var(--surface-card);
+}
+
+.avatar-trigger-wrapper.editable:hover .avatar-circle {
+  transform: scale(1.04);
+  box-shadow: 0 8px 24px rgba(99, 102, 241, 0.25), 0 0 0 3px #6366f1;
+}
+
+.svg-avatar-render {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.svg-avatar-render ::ng-deep svg {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  display: block;
+}
+
+.avatar-image-render {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  display: block;
+}
+
+.avatar-initials {
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 1.5rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.edit-badge {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #6366f1;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  border: 2px solid #ffffff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
+}
+
+.avatar-trigger-wrapper.editable:hover .edit-badge {
+  background: #4f46e5;
+  transform: scale(1.1);
+}
+
+/* ==========================================================================
+   PICKER DIALOG CONTAINER & CHUNKS
+   ========================================================================== */
+::ng-deep .avatar-picker-dialog.p-dialog {
+  width: 440px !important;
+  max-width: 95vw !important;
+  height: 620px !important;
+  max-height: 92vh !important;
+  border-radius: 20px !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(226, 232, 240, 0.8) !important;
+  box-shadow: 0 25px 60px -15px rgba(15, 23, 42, 0.25), 0 0 0 1px rgba(226, 232, 240, 0.6) !important;
+  background: #ffffff !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+::ng-deep .avatar-picker-dialog .p-dialog-header {
+  background: linear-gradient(to bottom, #ffffff, #fafbfe) !important;
+  border-bottom: 1px solid #f1f5f9 !important;
+  padding: 1.25rem 1.5rem 1.1rem 1.5rem !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  flex-shrink: 0 !important;
+}
+
+::ng-deep .avatar-picker-dialog .p-dialog-content {
+  background: #ffffff !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  flex: 1 1 auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  min-height: 0 !important;
+}
+
+/* Her zaman görünür, sağ kenarda konumlanmış estetik dikey kaydırma alanı */
+::ng-deep .avatar-picker-dialog .avatar-scroll-viewport,
+.avatar-scroll-viewport {
+  flex: 1 1 auto;
+  width: 100%;
+  height: 100%;
+  overflow-y: auto !important;
+  overflow-x: hidden;
+  padding: 1.25rem 1.15rem 1.5rem 1.35rem;
+  box-sizing: border-box;
+  scrollbar-gutter: stable;
+}
+
+/* Belirgin, modern sağ scroll çubuğu */
+::ng-deep .avatar-picker-dialog .avatar-scroll-viewport::-webkit-scrollbar,
+::ng-deep .avatar-scroll-viewport::-webkit-scrollbar {
+  width: 8px !important;
+  display: block !important;
+}
+
+::ng-deep .avatar-picker-dialog .avatar-scroll-viewport::-webkit-scrollbar-track,
+::ng-deep .avatar-scroll-viewport::-webkit-scrollbar-track {
+  background: #f1f5f9 !important;
+  border-radius: 9999px !important;
+  margin: 6px 0 !important;
+}
+
+::ng-deep .avatar-picker-dialog .avatar-scroll-viewport::-webkit-scrollbar-thumb,
+::ng-deep .avatar-scroll-viewport::-webkit-scrollbar-thumb {
+  background: #94a3b8 !important;
+  border-radius: 9999px !important;
+  border: 2px solid #f1f5f9 !important;
+}
+
+::ng-deep .avatar-picker-dialog .avatar-scroll-viewport::-webkit-scrollbar-thumb:hover,
+::ng-deep .avatar-scroll-viewport::-webkit-scrollbar-thumb:hover {
+  background: #6366f1 !important;
+}
+
+/* Firefox */
+::ng-deep .avatar-picker-dialog .avatar-scroll-viewport,
+.avatar-scroll-viewport {
+  scrollbar-width: thin !important;
+  scrollbar-color: #94a3b8 #f1f5f9 !important;
+}
+
+::ng-deep .avatar-picker-dialog .p-dialog-footer {
+  background: #f8fafc !important;
+  border-top: 1px solid #f1f5f9 !important;
+  padding: 1rem 1.5rem !important;
+  flex-shrink: 0 !important;
+}
+
+::ng-deep .avatar-picker-dialog .p-dialog-header-actions .p-dialog-close-button {
+  width: 34px !important;
+  height: 34px !important;
+  border-radius: 50% !important;
+  color: #64748b !important;
+  background: transparent !important;
+  border: 1px solid transparent !important;
+  transition: all 0.2s ease !important;
+}
+
+::ng-deep .avatar-picker-dialog .p-dialog-header-actions .p-dialog-close-button:hover {
+  background: #f1f5f9 !important;
+  color: #0f172a !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* ==========================================================================
+   PICKER DIALOG CONTENT & CARDS
+   ========================================================================== */
+.dialog-header-custom {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.header-icon-badge {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: rgba(99, 102, 241, 0.12);
+  color: #6366f1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  flex-shrink: 0;
+}
+
+.header-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.dialog-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+
+.dialog-subtitle {
+  font-size: 0.8rem;
+  color: #64748b;
+  margin: 0.15rem 0 0 0;
+}
+
+.picker-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  width: 100%;
+}
+
+/* Local Upload Action Card */
+.upload-action-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  background: #f8fafc;
+  border: 1.5px dashed #cbd5e1;
+  border-radius: 14px;
+  transition: all 0.2s ease;
+}
+
+.upload-action-card:hover {
+  border-color: #6366f1;
+  background: rgba(99, 102, 241, 0.03);
+}
+
+.upload-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.upload-icon-box {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: #eef2ff;
+  color: #6366f1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.upload-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.upload-text strong {
+  font-size: 0.825rem;
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.upload-text span {
+  font-size: 0.72rem;
+  color: #64748b;
+  line-height: 1.3;
+}
+
+.btn-upload-file {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.85rem;
+  border-radius: 9px;
+  background: #6366f1;
+  color: #ffffff;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  box-shadow: 0 2px 6px rgba(99, 102, 241, 0.25);
+  flex-shrink: 0;
+}
+
+.btn-upload-file:hover {
+  background: #4f46e5;
+  transform: translateY(-1px);
+}
+
+/* Preset Section & Avatars Grid */
+.preset-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.section-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.gender-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.2rem 0.65rem;
+  border-radius: 9999px;
+}
+
+.male-pill {
+  background: rgba(59, 130, 246, 0.12);
+  color: #2563eb;
+  border: 1px solid rgba(59, 130, 246, 0.25);
+}
+
+.female-pill {
+  background: rgba(236, 72, 153, 0.12);
+  color: #db2777;
+  border: 1px solid rgba(236, 72, 153, 0.25);
+}
+
+.section-desc {
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+.avatars-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+}
+
+.avatar-option-card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  background: #ffffff;
+  border: 2px solid #e2e8f0;
+  border-radius: 16px;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  aspect-ratio: 1 / 1;
+  min-height: 84px;
+}
+
+.avatar-option-card:hover {
+  transform: translateY(-2px);
+  border-color: #6366f1;
+  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.18);
+}
+
+.avatar-option-card.selected {
+  border-color: #6366f1;
+  background: rgba(99, 102, 241, 0.06);
+  box-shadow: 0 0 0 2px #6366f1;
+}
+
+.avatar-option-circle {
+  width: 100%;
+  height: 100%;
+  max-width: 66px;
+  max-height: 66px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatar-option-circle ::ng-deep svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.check-badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #6366f1;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+}
+
+/* Footer Actions */
+.dialog-footer-custom {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.btn-remove-avatar {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 0.95rem;
+  border-radius: 10px;
+  border: 1px solid #fca5a5;
+  background: #fef2f2;
+  color: #dc2626;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-right: auto;
+}
+
+.btn-remove-avatar:hover {
+  background: #fee2e2;
+  border-color: #ef4444;
+}
+
+.btn-close-modal {
+  padding: 0.55rem 1.15rem;
+  border-radius: 10px;
+  border: 1px solid #cbd5e1;
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-close-modal:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+/* ==========================================================================
+   DARK MODE OVERRIDES
+   ========================================================================== */
+html.dark .avatar-circle,
+:host-context(html.dark) .avatar-circle {
+  background: #090d16;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4), 0 0 0 2px rgba(255, 255, 255, 0.15);
+}
+
+html.dark .edit-badge,
+:host-context(html.dark) .edit-badge {
+  background: #4f46e5;
+  border-color: #1e293b;
+}
+
+/* ==========================================================================
+   DARK MODE OVERRIDES
+   ========================================================================== */
+html.dark ::ng-deep .avatar-picker-dialog.p-dialog {
+  background: #131d31 !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.08) !important;
+}
+
+html.dark ::ng-deep .avatar-picker-dialog .p-dialog-header {
+  background: #131d31 !important;
+  border-bottom-color: #1e293b !important;
+}
+
+html.dark ::ng-deep .avatar-picker-dialog .p-dialog-content {
+  background: #131d31 !important;
+}
+
+html.dark ::ng-deep .avatar-picker-dialog .p-dialog-footer {
+  background: #0f172a !important;
+  border-top-color: #1e293b !important;
+}
+
+html.dark ::ng-deep .avatar-picker-dialog .header-icon-badge {
+  background: rgba(99, 102, 241, 0.18) !important;
+  color: #818cf8 !important;
+  border-color: rgba(99, 102, 241, 0.3) !important;
+}
+
+html.dark ::ng-deep .avatar-picker-dialog .dialog-title {
+  color: #f8fafc !important;
+}
+
+html.dark ::ng-deep .avatar-picker-dialog .dialog-subtitle {
+  color: #94a3b8 !important;
+}
+
+html.dark ::ng-deep .avatar-picker-dialog .p-dialog-header-actions .p-dialog-close-button {
+  color: #94a3b8 !important;
+}
+
+html.dark ::ng-deep .avatar-picker-dialog .p-dialog-header-actions .p-dialog-close-button:hover {
+  background: #1e293b !important;
+  color: #f8fafc !important;
+  border-color: #334155 !important;
+}
+
+/* Upload Card in Dark Mode */
+html.dark ::ng-deep .avatar-picker-dialog .upload-action-card {
+  background: #090d16 !important;
+  border-color: #1e293b !important;
+}
+
+html.dark ::ng-deep .avatar-picker-dialog .upload-action-card:hover {
+  background: rgba(99, 102, 241, 0.08) !important;
+  border-color: #818cf8 !important;
+}
+
+html.dark ::ng-deep .avatar-picker-dialog .upload-icon-box {
+  background: rgba(99, 102, 241, 0.2) !important;
+  color: #818cf8 !important;
+}
+
+html.dark ::ng-deep .avatar-picker-dialog .upload-text strong {
+  color: #f8fafc !important;
+}
+
+html.dark ::ng-deep .avatar-picker-dialog .upload-text span {
+  color: #94a3b8 !important;
+}
+
+/* Section Pills in Dark Mode */
+html.dark ::ng-deep .avatar-picker-dialog .male-pill {
+  background: rgba(59, 130, 246, 0.18) !important;
+  color: #60a5fa !important;
+  border-color: rgba(59, 130, 246, 0.35) !important;
+}
+
+html.dark ::ng-deep .avatar-picker-dialog .female-pill {
+  background: rgba(236, 72, 153, 0.18) !important;
+  color: #f472b6 !important;
+  border-color: rgba(236, 72, 153, 0.35) !important;
+}
+
+/* Avatar Option Cards in Dark Mode */
+html.dark ::ng-deep .avatar-picker-dialog .avatar-option-card {
+  background: #090d16 !important;
+  border-color: #1e293b !important;
+}
+
+html.dark ::ng-deep .avatar-picker-dialog .avatar-option-card:hover {
+  background: #111a2e !important;
+  border-color: #818cf8 !important;
+  box-shadow: 0 6px 18px rgba(99, 102, 241, 0.25) !important;
+}
+
+html.dark ::ng-deep .avatar-picker-dialog .avatar-option-card.selected {
+  background: rgba(99, 102, 241, 0.18) !important;
+  border-color: #818cf8 !important;
+  box-shadow: 0 0 0 2px #818cf8 !important;
+}
+
+/* Scrollbar in Dark Mode */
+html.dark ::ng-deep .avatar-picker-dialog .avatar-scroll-viewport::-webkit-scrollbar-track,
+html.dark .avatar-scroll-viewport::-webkit-scrollbar-track {
+  background: #090d16 !important;
+}
+
+html.dark ::ng-deep .avatar-picker-dialog .avatar-scroll-viewport::-webkit-scrollbar-thumb,
+html.dark .avatar-scroll-viewport::-webkit-scrollbar-thumb {
+  background: #334155 !important;
+  border-color: #090d16 !important;
+}
+
+html.dark ::ng-deep .avatar-picker-dialog .avatar-scroll-viewport::-webkit-scrollbar-thumb:hover,
+html.dark .avatar-scroll-viewport::-webkit-scrollbar-thumb:hover {
+  background: #818cf8 !important;
+}
+
+html.dark ::ng-deep .avatar-picker-dialog .avatar-scroll-viewport,
+html.dark .avatar-scroll-viewport {
+  scrollbar-color: #334155 #090d16 !important;
+}
+
+/* Footer Buttons in Dark Mode */
+html.dark ::ng-deep .avatar-picker-dialog .btn-remove-avatar {
+  background: rgba(239, 68, 68, 0.15) !important;
+  border-color: rgba(239, 68, 68, 0.35) !important;
+  color: #f87171 !important;
+}
+
+html.dark ::ng-deep .avatar-picker-dialog .btn-remove-avatar:hover {
+  background: rgba(239, 68, 68, 0.25) !important;
+  border-color: #ef4444 !important;
+}
+
+html.dark ::ng-deep .avatar-picker-dialog .btn-close-modal {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+  color: #cbd5e1 !important;
+}
+
+html.dark ::ng-deep .avatar-picker-dialog .btn-close-modal:hover {
+  background: #334155 !important;
+  color: #ffffff !important;
+}

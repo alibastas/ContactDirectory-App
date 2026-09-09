@@ -157,6 +157,35 @@ public class AuthService : IAuthService
         return (true, "Hesabınız ve tüm verileriniz başarıyla silindi.");
     }
 
+    public async Task<(bool IsSuccess, string? AvatarUrl, string Message)> UpdateAvatarAsync(int userId, string? avatarUrl)
+    {
+        var user = await _context.Users.FindAsync(userId);
+        if (user == null)
+        {
+            return (false, null, "Kullanıcı bulunamadı.");
+        }
+
+        user.AvatarUrl = avatarUrl;
+        await _context.SaveChangesAsync();
+
+        await _auditLogService.LogAsync(
+            userId,
+            user.Username,
+            "UPDATE",
+            "User",
+            userId,
+            "Kullanıcı profil fotoğrafını güncelledi."
+        );
+
+        return (true, user.AvatarUrl, "Profil fotoğrafı başarıyla güncellendi.");
+    }
+
+    public async Task<string?> GetAvatarAsync(int userId)
+    {
+        var user = await _context.Users.FindAsync(userId);
+        return user?.AvatarUrl;
+    }
+
     private string CreateToken(User user, int expireMinutes, bool rememberMe)
     {
         var jwtSettings = _configuration.GetSection("Jwt");

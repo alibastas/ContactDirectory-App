@@ -1,0 +1,150 @@
+<div class="avatar-trigger-wrapper" [class.editable]="editable" (click)="openModal()">
+  <!-- Main Display Circle -->
+  <div 
+    class="avatar-circle"
+    [style.width.px]="size"
+    [style.height.px]="size"
+    [style.background]="!avatarUrl ? fallbackGradient : 'transparent'">
+
+    <!-- Case 1: Preset SVG Avatar -->
+    <div 
+      *ngIf="isPreset(avatarUrl)" 
+      class="svg-avatar-render" 
+      [innerHTML]="getCurrentSvg()">
+    </div>
+
+    <!-- Case 2: Custom Uploaded Image / Data URL -->
+    <img 
+      *ngIf="avatarUrl && !isPreset(avatarUrl)" 
+      [src]="avatarUrl" 
+      alt="Profil Fotoğrafı" 
+      class="avatar-image-render" />
+
+    <!-- Case 3: Fallback Initials -->
+    <span *ngIf="!avatarUrl" class="avatar-initials">
+      {{ initials }}
+    </span>
+  </div>
+
+  <!-- Camera / Edit Badge Overlay -->
+  <div *ngIf="editable" class="edit-badge" title="Fotoğrafı Değiştir">
+    <i class="pi pi-camera"></i>
+  </div>
+</div>
+
+<!-- Avatar Seçim Modalı -->
+<p-dialog 
+  [visible]="showModal()" 
+  (visibleChange)="showModal.set($event)" 
+  [modal]="true" 
+  appendTo="body"
+  [style]="{ width: '440px', maxWidth: '95vw', height: '620px', maxHeight: '92vh' }"
+  [breakpoints]="{ '640px': '95vw' }"
+  [draggable]="false" 
+  [resizable]="false" 
+  [dismissableMask]="true"
+  styleClass="avatar-picker-dialog">
+
+  <ng-template #header pTemplate="header">
+    <div class="dialog-header-custom">
+      <div class="header-icon-badge">
+        <i class="pi pi-image"></i>
+      </div>
+      <div class="header-text">
+        <h3 class="dialog-title">Profil Fotoğrafı Seçin</h3>
+        <p class="dialog-subtitle">Cihazınızdan fotoğraf yükleyin veya hazır bir karakter seçin</p>
+      </div>
+    </div>
+  </ng-template>
+
+  <div class="avatar-scroll-viewport">
+    <div class="picker-content">
+      <!-- Local File Upload Action Box -->
+      <div class="upload-action-card">
+        <div class="upload-info">
+          <div class="upload-icon-box">
+            <i class="pi pi-cloud-upload"></i>
+          </div>
+          <div class="upload-text">
+            <strong>Kendi Fotoğrafınızı Yükleyin</strong>
+            <span>PNG, JPG veya WebP formatında görsel yükleyin (otomatik optimize edilir)</span>
+          </div>
+        </div>
+        <label class="btn-upload-file">
+          <i class="pi pi-upload"></i>
+          <span>Dosya Seç</span>
+          <input 
+            type="file" 
+            accept="image/png, image/jpeg, image/webp" 
+            style="display: none;" 
+            (change)="onFileSelected($event)" />
+        </label>
+      </div>
+
+      <!-- Pre-defined Avatars Section: Erkek Karakterler -->
+      <div class="preset-section">
+        <div class="section-title-row">
+          <span class="gender-pill male-pill">
+            <i class="pi pi-user"></i>
+            <span>Erkek Karakter</span>
+          </span>
+        </div>
+
+        <div class="avatars-grid">
+          <div 
+            *ngFor="let avatar of maleAvatars" 
+            class="avatar-option-card"
+            [class.selected]="avatarUrl === avatar.id"
+            (click)="selectPreset(avatar)">
+            <div class="avatar-option-circle" [innerHTML]="getSafeSvg(avatar.svg)"></div>
+            <div *ngIf="avatarUrl === avatar.id" class="check-badge">
+              <i class="pi pi-check"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pre-defined Avatars Section: Kadın Karakterler -->
+      <div class="preset-section">
+        <div class="section-title-row">
+          <span class="gender-pill female-pill">
+            <i class="pi pi-user"></i>
+            <span>Kadın Karakter</span>
+          </span>
+        </div>
+
+        <div class="avatars-grid">
+          <div 
+            *ngFor="let avatar of femaleAvatars" 
+            class="avatar-option-card"
+            [class.selected]="avatarUrl === avatar.id"
+            (click)="selectPreset(avatar)">
+            <div class="avatar-option-circle" [innerHTML]="getSafeSvg(avatar.svg)"></div>
+            <div *ngIf="avatarUrl === avatar.id" class="check-badge">
+              <i class="pi pi-check"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <ng-template #footer pTemplate="footer">
+    <div class="dialog-footer-custom">
+      <button 
+        *ngIf="avatarUrl" 
+        type="button" 
+        class="btn-remove-avatar" 
+        (click)="removeAvatar()">
+        <i class="pi pi-trash"></i>
+        <span>Fotoğrafı Kaldır</span>
+      </button>
+      <button 
+        type="button" 
+        class="btn-close-modal" 
+        (click)="closeModal()">
+        <span>Vazgeç</span>
+      </button>
+    </div>
+  </ng-template>
+</p-dialog>
