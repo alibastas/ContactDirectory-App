@@ -18,7 +18,7 @@ export class AdminService {
   }
 
   /** Sistem işlem loglarını (Audit Logs) getirir */
-  getLogs(page: number = 1, pageSize: number = 100, actionFilter?: string): Observable<PagedResult<AuditLogDto>> {
+  getLogs(page: number = 1, pageSize: number = 1000, actionFilter?: string): Observable<PagedResult<AuditLogDto>> {
     let url = `${this.apiUrl}/logs?page=${page}&pageSize=${pageSize}`;
     if (actionFilter && actionFilter !== 'ALL') {
       url += `&actionFilter=${encodeURIComponent(actionFilter)}`;

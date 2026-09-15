@@ -1,7 +1,7 @@
 import { Component, OnInit, ChangeDetectionStrategy, signal, computed, HostListener, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import { ContactService, AdvancedSearchParams } from '../../services/contact.service';
+import { ContactService, AdvancedSearchParams,ContactRequest} from '../../services/contact.service';
 import { Contact } from '../../core/models/contact.model';
 import { Router } from '@angular/router';
 import { finalize } from 'rxjs';
@@ -9,7 +9,9 @@ import { AuthService } from '../../services/auth';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
-
+import { DialogModule } from 'primeng/dialog';
+import { TextareaModule } from 'primeng/textarea';
+import { FormsModule } from '@angular/forms';
 import { TopbarComponent } from '../../shared/components/topbar/topbar';
 import { StatCardsComponent } from '../../features/contacts/components/stat-cards/stat-cards';
 import { ContactSearchComponent } from '../../features/contacts/components/contact-search/contact-search';
@@ -19,6 +21,8 @@ import { ContactDetailsComponent } from '../../features/contacts/components/cont
 import { ExcelImportDialogComponent } from '../../features/contacts/components/excel-import/excel-import-dialog';
 import { ExcelService } from '../../services/excel.service';
 import { isPresetAvatar, getPresetSvg } from '../../core/constants/avatars';
+import { ButtonModule } from 'primeng/button';
+import { InputTextModule } from 'primeng/inputtext';
 
 @Component({
   selector: 'app-contact',
@@ -26,7 +30,7 @@ import { isPresetAvatar, getPresetSvg } from '../../core/constants/avatars';
   imports: [
     CommonModule, ToastModule, ConfirmDialogModule,
     TopbarComponent, StatCardsComponent, ContactSearchComponent, ContactTableComponent, UserProfileComponent,
-    ContactDetailsComponent, ExcelImportDialogComponent
+    ContactDetailsComponent, ExcelImportDialogComponent,DialogModule,TextareaModule,ButtonModule, InputTextModule,FormsModule
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -116,6 +120,20 @@ import { isPresetAvatar, getPresetSvg } from '../../core/constants/avatars';
             <img *ngIf="profileData().avatarUrl && !isPreset(profileData().avatarUrl)" [src]="profileData().avatarUrl" alt="Avatar" class="topbar-avatar-img">
             <i *ngIf="!profileData().avatarUrl" class="pi pi-user"></i>
           </div>
+
+
+          <p-button
+  label="İletişim Talebi" 
+  icon="pi pi-envelope" 
+  severity="info" 
+  [outlined]="true" 
+  size="small" 
+  (onClick)="showContactDialog.set(true)">
+</p-button>
+
+
+
+
           <button class="btn-logout" (click)="logout()" title="Çıkış Yap">
             <i class="pi pi-power-off"></i>
           </button>
@@ -183,6 +201,156 @@ import { isPresetAvatar, getPresetSvg } from '../../core/constants/avatars';
         (visibleChange)="showImportDialogVisible.set($event)"
         (importCompleted)="onImportCompleted($event)">
       </app-excel-import-dialog>
+     
+<p-dialog 
+  header="Müşteri İletişim Formu" 
+  [visible]="showContactDialog()" 
+  (visibleChange)="showContactDialog.set($event)"
+  [modal]="true" 
+  [style]="{ width: '520px', maxWidth: '95vw' }" 
+  [draggable]="false" 
+  [resizable]="false">
+
+  <div class="form-grid">
+    <!-- İletişim Türü -->
+    <div class="form-field">
+      <label>İletişim Türü</label>
+      <div class="type-buttons">
+        <button 
+          type="button" 
+          *ngFor="let type of communicationTypes" 
+          [class.active]="contactForm.communicationType === type"
+          (click)="contactForm.communicationType = type"
+          class="type-chip">
+          {{ type }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Ad & Soyad -->
+    <div class="form-row">
+      <div class="form-field">
+        <label>Ad *</label>
+        <input 
+          type="text" 
+          pInputText 
+          [(ngModel)]="contactForm.firstName" 
+          (keypress)="lettersOnly($event)"
+          maxlength="30"
+          placeholder="Adınız" 
+          class="w-full" />
+      </div>
+      <div class="form-field">
+        <label>Soyad</label>
+        <input 
+          type="text" 
+          pInputText 
+          [(ngModel)]="contactForm.lastName" 
+          (keypress)="lettersOnly($event)"
+          maxlength="30"
+          placeholder="Soyadınız" 
+          class="w-full" />
+      </div>
+    </div>
+
+    <!-- Telefon & E-Posta -->
+    <div class="form-row">
+      <div class="form-field">
+        <label>Telefon *</label>
+        <input 
+          type="text" 
+          pInputText 
+          [(ngModel)]="contactForm.phoneNumber" 
+          (keypress)="numbersOnly($event)"
+          maxlength="11" 
+          placeholder="0555 000 00 00" 
+          class="w-full" />
+      </div>
+      <div class="form-field">
+        <label>E-Posta</label>
+        <input 
+          type="email" 
+          pInputText 
+          [(ngModel)]="contactForm.email" 
+          maxlength="60"
+          placeholder="ornek@mail.com" 
+          class="w-full" />
+      </div>
+    </div>
+
+    <!-- Konu -->
+    <div class="form-field">
+      <label>Konu</label>
+      <input 
+        type="text" 
+        pInputText 
+        [(ngModel)]="contactForm.subject" 
+        maxlength="70"
+        placeholder="Talebinizin konusu" 
+        class="w-full" />
+    </div>
+
+    <!-- İl & Şube -->
+    <div class="form-row">
+      <div class="form-field">
+        <label>İl</label>
+        <input 
+          type="text" 
+          pInputText 
+          [(ngModel)]="contactForm.city" 
+          (keypress)="lettersOnly($event)"
+          maxlength="25"
+          placeholder="Örn: Ankara" 
+          class="w-full" />
+      </div>
+      <div class="form-field">
+        <label>Şube</label>
+        <input 
+          type="text" 
+          pInputText 
+          [(ngModel)]="contactForm.branch" 
+          maxlength="35"
+          placeholder="Örn: Kızılay" 
+          class="w-full" />
+      </div>
+    </div>
+
+    <!-- Mesaj (Karakter Sayacı ile) -->
+    <div class="form-field">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <label>Mesajınız *</label>
+        <small style="color: #94a3b8; font-size: 0.75rem;">
+          {{ contactForm.message?.length || 0 }} / 1000
+        </small>
+      </div>
+      <textarea 
+        pTextarea 
+        [(ngModel)]="contactForm.message" 
+        rows="4" 
+        maxlength="1000"
+        placeholder="Mesajınızı detaylı şekilde yazınız..." 
+        class="w-full">
+      </textarea>
+    </div>
+
+    <!-- Alt İşlem Butonları -->
+    <div class="dialog-footer-actions">
+      <p-button 
+        label="Vazgeç" 
+        icon="pi pi-times" 
+        severity="secondary" 
+        [text]="true" 
+        (onClick)="showContactDialog.set(false)">
+      </p-button>
+      <p-button 
+        label="Talebi İlet" 
+        icon="pi pi-send" 
+        severity="primary" 
+        (onClick)="submitContactForm()">
+      </p-button>
+    </div>
+  </div>
+</p-dialog>
     </div>
   `,
   styles: [`
@@ -570,6 +738,71 @@ import { isPresetAvatar, getPresetSvg } from '../../core/constants/avatars';
       color: var(--text-primary);
       margin: 0;
     }
+
+.form-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-top: 8px;
+}
+
+.form-row {
+  display: flex;
+  gap: 12px;
+}
+
+.form-field {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.form-field label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #475569;
+}
+
+.type-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.type-chip {
+  padding: 6px 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 20px;
+  background-color: #f8fafc;
+  color: #334155;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.type-chip.active {
+  background-color: #3b82f6;
+  border-color: #3b82f6;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+  /* Contact request modal styles */
+  textarea.p-inputtextarea,
+  textarea {
+    resize: none !important;
+    overflow-y: auto !important;
+  }
+
+  .dialog-footer-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding-top: 1rem;
+    border-top: 1px solid var(--surface-border, #e2e8f0);
+  }
+
   `]
 })
 export class ContactComponent implements OnInit {
@@ -931,4 +1164,77 @@ export class ContactComponent implements OnInit {
     this.messageService.add({ severity: 'success', summary: 'Başarılı', detail: 'Profil bilgileri güncellendi.' });
     this.showProfileDialog.set(false);
   }
+
+
+
+  showContactDialog = signal<boolean>(false);
+
+  communicationTypes = ['Şikayet', 'Talep', 'Bilgi', 'Teşekkür', 'Öneri'];
+
+  contactForm: ContactRequest = {
+    communicationType: 'Talep',
+    subject: '',
+    firstName: '',
+    lastName: '',
+    phoneNumber: '',
+    email: '',
+    message: '',
+    city: '',
+    branch: ''
+  };
+
+  submitContactForm() {
+    if (!this.contactForm.firstName || !this.contactForm.phoneNumber || !this.contactForm.message) {
+      this.showError('Lütfen zorunlu alanları (Ad, Telefon, Mesaj) doldurunuz.');
+      return;
+    }
+
+    this.contactService.createContactRequest(this.contactForm).subscribe({
+      next: () => {
+        this.showSuccess('İletişim talebiniz başarıyla kaydedildi.');
+        this.showContactDialog.set(false);
+        this.contactForm = {
+          communicationType: 'Talep',
+          subject: '',
+          firstName: '',
+          lastName: '',
+          phoneNumber: '',
+          email: '',
+          message: '',
+          city: '',
+          branch: ''
+        };
+      },
+      error: () => {
+        this.showError('Talep iletilirken bir hata oluştu.');
+      }
+    });
+  }
+
+  lettersOnly(event: KeyboardEvent): boolean {
+    const charCode = event.which ? event.which : event.keyCode;
+    if (charCode >= 48 && charCode <= 57) {
+      event.preventDefault();
+      return false;
+    }
+    return true;
+  }
+
+  numbersOnly(event: KeyboardEvent): boolean {
+    const charCode = event.which ? event.which : event.keyCode;
+    if (charCode > 31 && (charCode < 48 || charCode > 57)) {
+      event.preventDefault();
+      return false;
+    }
+    return true;
+  }
+
+  showSuccess(msg: string) {
+    this.messageService.add({ severity: 'success', summary: 'Başarılı', detail: msg, life: 3000 });
+  }
+
+  showError(msg: string) {
+    this.messageService.add({ severity: 'error', summary: 'Hata', detail: msg, life: 3000 });
+  }
 }
+

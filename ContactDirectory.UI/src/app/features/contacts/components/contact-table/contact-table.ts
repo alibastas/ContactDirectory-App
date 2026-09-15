@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy, ViewChild } from '@angular/core';
+import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { Contact } from '../../../../core/models/contact.model';
@@ -12,12 +12,13 @@ import { isPresetAvatar, getPresetSvg } from '../../../../core/constants/avatars
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <!-- Table -->
-    <div class="table-wrapper">
+    <div #tableWrapper class="table-wrapper">
       <p-table #dt [value]="contacts" [tableStyle]="{ 'min-width': '100%' }"
         rowGroupMode="subheader" groupRowsBy="firstLetter"
         [lazy]="true" (onLazyLoad)="onLazyLoadData($event)" [totalRecords]="totalRecords"
         [loading]="isLoading"
-        [paginator]="true" [rows]="rows" [rowsPerPageOptions]="[10, 20, 50, 100]" [(first)]="firstRow">
+        [paginator]="true" [rows]="rows" [rowsPerPageOptions]="[10, 20, 50, 100]" [(first)]="firstRow"
+        (onPage)="onTablePage($event)">
         
         <ng-template #header>
           <tr>
@@ -336,6 +337,7 @@ import { isPresetAvatar, getPresetSvg } from '../../../../core/constants/avatars
 })
 export class ContactTableComponent {
   @ViewChild('dt') table!: Table;
+  @ViewChild('tableWrapper') tableWrapper?: ElementRef<HTMLElement>;
 
   @Input() contacts: (Contact & { firstLetter?: string })[] = [];
   @Input() isLoading: boolean = false;
@@ -394,6 +396,24 @@ export class ContactTableComponent {
 
   onLazyLoadData(event: any) {
     this.lazyLoad.emit(event);
+  }
+
+  onTablePage(event: any) {
+    this.scrollToTop();
+  }
+
+  scrollToTop(): void {
+    setTimeout(() => {
+      const el = this.tableWrapper?.nativeElement;
+      if (el) {
+        const topOffset = 100;
+        const targetY = el.getBoundingClientRect().top + window.scrollY - topOffset;
+        window.scrollTo({
+          top: Math.max(0, targetY),
+          behavior: 'smooth'
+        });
+      }
+    }, 20);
   }
 
   constructor(private sanitizer: DomSanitizer) {}

@@ -43,10 +43,13 @@ public class AuditLogService : IAuditLogService
 
         var totalCount = await query.CountAsync();
 
-        var items = await query
-            .OrderByDescending(l => l.Timestamp)
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
+        var orderedQuery = query.OrderByDescending(l => l.Timestamp);
+
+        var pagedQuery = pageSize > 0 
+            ? orderedQuery.Skip((page - 1) * pageSize).Take(pageSize)
+            : orderedQuery;
+
+        var items = await pagedQuery
             .Select(l => new AuditLogDto
             {
                 Id = l.Id,

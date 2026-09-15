@@ -252,4 +252,41 @@ export class ExcelService {
     }
     return '';
   }
+  exportContactRequestsToExcel(requests: any[], fileName: string = 'Musteri_Iletisim_Talepleri'): void {
+    const dataToExport = requests.map(r => ({
+      'Tarih': r.createdAt ? new Date(r.createdAt).toLocaleString('tr-TR') : '',
+      'İletişim Türü': r.communicationType || '',
+      'Ad': r.firstName || '',
+      'Soyad': r.lastName || '',
+      'Telefon': r.phoneNumber || '',
+      'E-Posta': r.email || '',
+      'Konu': r.subject || '',
+      'İl': r.city || '',
+      'Şube': r.branch || '',
+      'Mesaj': r.message || ''
+    }));
+
+    const worksheet: XLSX.WorkSheet = XLSX.utils.json_to_sheet(dataToExport);
+
+    worksheet['!cols'] = [
+      { wch: 18 },
+      { wch: 12 },
+      { wch: 15 },
+      { wch: 15 },
+      { wch: 15 },
+      { wch: 25 },
+      { wch: 20 },
+      { wch: 15 },
+      { wch: 15 },
+      { wch: 40 }
+    ];
+
+    const workbook: XLSX.WorkBook = {
+      Sheets: { 'İletişim Talepleri': worksheet },
+      SheetNames: ['İletişim Talepleri']
+    };
+
+    XLSX.writeFile(workbook, `${fileName}_${new Date().toISOString().slice(0, 10)}.xlsx`);
+  }
 }
+

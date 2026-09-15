@@ -1,4 +1,4 @@
-import { Component, OnInit, Input, Output, EventEmitter, ChangeDetectionStrategy, signal, computed, inject } from '@angular/core';
+import { Component, OnInit, Input, Output, EventEmitter, ChangeDetectionStrategy, signal, computed, inject, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PaginatorModule } from 'primeng/paginator';
@@ -25,6 +25,7 @@ import { AuditLogDto, UserSummaryDto } from '../../../../core/models/admin.model
 })
 export class AuditLogsComponent implements OnInit {
   private adminService = inject(AdminService);
+  private elementRef = inject(ElementRef);
 
   @Input() users: UserSummaryDto[] = [];
   @Output() refreshRequested = new EventEmitter<void>();
@@ -92,6 +93,21 @@ export class AuditLogsComponent implements OnInit {
   onPageChange(event: any): void {
     this.firstRow.set(event.first ?? 0);
     this.pageSize.set(event.rows ?? 10);
+    this.scrollToTop();
+  }
+
+  private scrollToTop(): void {
+    setTimeout(() => {
+      const el = this.elementRef.nativeElement.querySelector('.table-responsive') || this.elementRef.nativeElement;
+      if (el) {
+        const topOffset = 100;
+        const targetY = el.getBoundingClientRect().top + window.scrollY - topOffset;
+        window.scrollTo({
+          top: Math.max(0, targetY),
+          behavior: 'smooth'
+        });
+      }
+    }, 20);
   }
 
   ngOnInit(): void {
@@ -100,7 +116,7 @@ export class AuditLogsComponent implements OnInit {
 
   loadLogs(): void {
     this.isLoadingLogs.set(true);
-    this.adminService.getLogs(1, 100).subscribe({
+    this.adminService.getLogs(1, 1000).subscribe({
       next: (response) => {
         const items = response?.items || [];
         this.logs.set(items);

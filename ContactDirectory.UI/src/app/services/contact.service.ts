@@ -25,6 +25,22 @@ export interface BulkImportResult {
   message: string;
 }
 
+export interface ContactRequest {
+  id?: number;
+  communicationType: string;
+  subject: string;
+  firstName: string;
+  lastName: string;
+  phoneNumber: string;
+  email: string;
+  message: string;
+  city: string;
+  branch: string;
+  userId?: number;
+  createdAt?: string;
+}
+
+
 @Injectable({
   providedIn: 'root'
 })
@@ -120,6 +136,16 @@ export class ContactService {
     return this.http.get<Contact[]>(`${this.apiUrl}/export-data`, { params });
   }
 
+createContactRequest(request: ContactRequest): Observable<ContactRequest> {
+  return this.http.post<ContactRequest>('http://localhost:5099/api/ContactRequests', request);
+}
+getContactRequests(): Observable<ContactRequest[]> {
+  return this.http.get<ContactRequest[]>('http://localhost:5099/api/ContactRequests');
+}
+
+deleteContactRequest(id: number): Observable<any> {
+  return this.http.delete(`http://localhost:5099/api/ContactRequests/${id}`);
+}
   /** Excel veya CSV toplu veri ile kişileri aktar (Yinelenen kayıt stratejisi ile) */
   bulkAddContacts(
     contacts: Partial<Contact>[], 

@@ -28,7 +28,7 @@ public class AdminController : ControllerBase
     [HttpGet("logs")]
     public async Task<ActionResult<PagedResult<AuditLogDto>>> GetLogs(
         [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 20,
+        [FromQuery] int pageSize = 1000,
         [FromQuery] string? actionFilter = null)
     {
         var logs = await _auditLogService.GetLogsAsync(page, pageSize, actionFilter);

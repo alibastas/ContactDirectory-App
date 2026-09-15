@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy, signal, inject, computed } from '@angular/core';
+import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy, signal, inject, computed, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { PaginatorModule } from 'primeng/paginator';
@@ -29,6 +29,7 @@ export class UserManagementComponent {
   private authService = inject(AuthService);
   private messageService = inject(MessageService);
   private sanitizer = inject(DomSanitizer);
+  private elementRef = inject(ElementRef);
 
   @Input() users: UserSummaryDto[] = [];
   @Input() isLoading: boolean = false;
@@ -84,6 +85,21 @@ export class UserManagementComponent {
   onPageChange(event: any): void {
     this.firstRow.set(event.first ?? 0);
     this.pageSize.set(event.rows ?? 10);
+    this.scrollToTop();
+  }
+
+  private scrollToTop(): void {
+    setTimeout(() => {
+      const el = this.elementRef.nativeElement.querySelector('.table-responsive') || this.elementRef.nativeElement;
+      if (el) {
+        const topOffset = 100;
+        const targetY = el.getBoundingClientRect().top + window.scrollY - topOffset;
+        window.scrollTo({
+          top: Math.max(0, targetY),
+          behavior: 'smooth'
+        });
+      }
+    }, 20);
   }
 
   toggleUserRole(user: UserSummaryDto): void {

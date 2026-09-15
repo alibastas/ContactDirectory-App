@@ -80,6 +80,16 @@
         <span>İşlem Geçmişi (Audit Logs)</span>
         <span class="tab-badge" *ngIf="stats()?.totalLogs !== undefined">{{ stats()?.totalLogs }}</span>
       </button>
+
+      <button 
+        type="button"
+        class="admin-tab-btn" 
+        [class.active]="activeTab() === 'requests'" 
+        (click)="setActiveTab('requests')">
+        <i class="pi pi-inbox"></i>
+        <span>İletişim Talepleri</span>
+        <span class="tab-badge">{{ contactRequests().length }}</span>
+      </button>
     </div>
 
     <!-- Active Tab Component Views -->
@@ -98,6 +108,165 @@
         [users]="stats()?.userSummaries || []"
         (refreshRequested)="loadStats()">
       </app-audit-logs>
+
+      <!-- Tab 3: Customer Contact Requests -->
+      <div *ngIf="activeTab() === 'requests'" class="card" style="padding: 1.5rem; border-radius: 12px; background: white; border: 1px solid var(--surface-border, #e2e8f0); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.04);">
+        <p-confirmdialog />
+
+        <!-- Header and Actions -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.75rem; flex-wrap: wrap; gap: 10px;">
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <i class="pi pi-inbox" style="font-size: 1.3rem; color: #6366f1;"></i>
+            <div>
+              <h3 style="margin: 0; font-size: 1.1rem; font-weight: 700; color: #1e293b;">Müşteri İletişim Talepleri</h3>
+              <small style="color: #64748b;">Rehber üzerinden iletilen form kayıtları</small>
+            </div>
+          </div>
+
+          <!-- Actions: Export and Refresh -->
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <p-button 
+              label="Excel'e Aktar" 
+              icon="pi pi-file-excel" 
+              severity="success" 
+              size="small"
+              [outlined]="true"
+              (onClick)="exportRequestsToExcel()"
+              [disabled]="contactRequests().length === 0">
+            </p-button>
+
+            <p-button 
+              icon="pi pi-refresh" 
+              [rounded]="true" 
+              [text]="true" 
+              severity="secondary"
+              (onClick)="loadContactRequests()" 
+              title="Talepleri Yenile">
+            </p-button>
+          </div>
+        </div>
+
+        <!-- PrimeNG Tablosu -->
+        <p-table 
+          [value]="contactRequests()" 
+          [loading]="isLoadingRequests()"
+          [paginator]="true" 
+          [rows]="8" 
+          [rowsPerPageOptions]="[8, 15, 25]"
+          responsiveLayout="scroll"
+          styleClass="p-datatable-sm p-datatable-striped">
+          
+          <ng-template #header>
+            <tr>
+              <th style="width: 130px;">Tarih</th>
+              <th style="width: 90px;">Tür</th>
+              <th>Ad Soyad</th>
+              <th>İletişim</th>
+              <th>Konu</th>
+              <th>İl / Şube</th>
+              <th>Mesaj</th>
+              <th style="width: 60px; text-align: center;">İşlem</th>
+            </tr>
+          </ng-template>
+
+          <ng-template #body let-req>
+            <tr>
+              <!-- Tarih -->
+              <td style="color: #64748b; font-size: 0.85rem; white-space: nowrap;">
+                <i class="pi pi-calendar" style="font-size: 0.8rem; margin-right: 4px;"></i>
+                {{ req.createdAt | date:'dd.MM.yyyy HH:mm' }}
+              </td>
+
+              <!-- Tür -->
+              <td>
+                <span [ngClass]="{
+                  'p-badge p-badge-info': req.communicationType === 'Talep',
+                  'p-badge p-badge-danger': req.communicationType === 'Şikayet',
+                  'p-badge p-badge-success': req.communicationType === 'Teşekkür',
+                  'p-badge p-badge-warning': req.communicationType === 'Öneri',
+                  'p-badge p-badge-secondary': req.communicationType === 'Bilgi'
+                }">
+                  {{ req.communicationType }}
+                </span>
+              </td>
+
+              <!-- Ad Soyad -->
+              <td style="max-width: 150px; word-break: break-word;">
+                <strong style="color: #1e293b;">{{ req.firstName }} {{ req.lastName }}</strong>
+              </td>
+
+              <!-- İletişim -->
+              <td style="max-width: 170px; word-break: break-word;">
+                <div style="font-size: 0.85rem; white-space: nowrap;">
+                  <i class="pi pi-phone" style="font-size: 0.75rem; color: #94a3b8; margin-right: 4px;"></i>{{ req.phoneNumber }}
+                </div>
+                <div *ngIf="req.email" style="font-size: 0.75rem; color: #64748b;">
+                  <i class="pi pi-envelope" style="font-size: 0.7rem; color: #94a3b8; margin-right: 4px;"></i>{{ req.email }}
+                </div>
+              </td>
+
+              <!-- Konu -->
+              <td style="max-width: 130px; word-break: break-word; font-size: 0.85rem; color: #334155;">
+                {{ req.subject || '-' }}
+              </td>
+
+              <!-- İl / Şube -->
+              <td style="max-width: 120px; word-break: break-word; font-size: 0.85rem; color: #475569;">
+                <span *ngIf="req.city || req.branch">
+                  <i class="pi pi-map-marker" style="font-size: 0.75rem; color: #94a3b8; margin-right: 3px;"></i>
+                  {{ req.city }} <span *ngIf="req.branch">/ {{ req.branch }}</span>
+                </span>
+                <span *ngIf="!req.city && !req.branch">-</span>
+              </td>
+
+              <!-- Mesaj -->
+              <td style="max-width: 240px;">
+                <div 
+                  [title]="req.message"
+                  style="
+                    background: #f8fafc; 
+                    padding: 6px 10px; 
+                    border-radius: 6px; 
+                    border: 1px solid #e2e8f0; 
+                    color: #334155; 
+                    font-size: 0.85rem;
+                    display: -webkit-box;
+                    -webkit-line-clamp: 2;
+                    -webkit-box-orient: vertical;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    cursor: help;
+                    word-break: break-word;
+                  ">
+                  {{ req.message }}
+                </div>
+              </td>
+
+              <!-- Actions: Delete Request -->
+              <td style="text-align: center;">
+                <p-button 
+                  icon="pi pi-trash" 
+                  [rounded]="true" 
+                  [text]="true" 
+                  severity="danger" 
+                  (onClick)="confirmDeleteRequest(req)" 
+                  title="Talebi Sil">
+                </p-button>
+              </td>
+            </tr>
+          </ng-template>
+
+          <ng-template #emptymessage>
+            <tr>
+              <td colspan="8" style="text-align: center; padding: 3rem; color: #94a3b8;">
+                <i class="pi pi-inbox" style="font-size: 2rem; display: block; margin-bottom: 0.5rem;"></i>
+                Henüz kayıtlı bir iletişim talebi bulunmuyor.
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+
     </div>
   </main>
 </div>
