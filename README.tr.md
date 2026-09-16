@@ -34,7 +34,8 @@ Arka yüzde **.NET 10 Web API**, ön yüzde ise **Angular 20 (Standalone Bileşe
 - **AES-256 Kolon Bazlı Şifreleme:** T.C. Kimlik No gibi hassas kişisel veriler (PII), veri tabanında bekleyen veri (data-at-rest) olarak endüstri standardı AES-256 ile şifrelenir.
 - **JWT Kimlik Doğrulama & Kayan Süre (Sliding Expiration):** Refresh token rotasyonu ve kullanıcının aktifliğine göre oturum süresini otomatik uzatan yapı.
 - **Hareketsizlik Oturum Zaman Aşımı (Inactivity Timeout):** Açık kalan oturumları korumak adına belirli bir süre işlem yapılmadığında güvenli otomatik çıkış mekanizması.
-- **Hız Sınırlama (Rate Limiting):** Kaba kuvvet (brute-force) ve DDoS girişimlerine karşı IP ve istemci bazlı hız limitleme altyapısı.
+- **Hız Sınırlama (Rate Limiting) & Kaba Kuvvet Koruması:** Kimlik doğrulama ve talep uç noktalarında IP bazlı istek sınırlama.
+- **Sunucu Taraflı Doğrulama & Mass Assignment Koruması:** DTO kuralları ile geçersiz veya yetkisiz alan manipülasyonlarının engellenmesi.
 - **KVKK / GDPR Uyumluluğu:** Entegre aydınlatma metinleri, onay pencereleri ve denetlenebilir kullanıcı onay kayıtları.
 
 ### 👥 Rehber ve Kişi Yönetimi

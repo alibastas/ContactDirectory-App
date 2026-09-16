@@ -1,11 +1,13 @@
-using ContactDirectory.DataAccess;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using System.Threading.RateLimiting;
 using ContactDirectory.Api.Interfaces;
 using ContactDirectory.Api.Services;
 using ContactDirectory.Core.Security;
+using ContactDirectory.DataAccess;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -38,15 +40,47 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization();
 
-// 3. CORS (Cross-Origin Resource Sharing) Ayarı
+// 3. CORS Ayarları (Sadece izin verilen frontend origin'leri)
+var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+    ?? new[] { "http://localhost:4200", "http://127.0.0.1:4200" };
+
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", policy =>
+    options.AddPolicy("DefaultCorsPolicy", policy =>
     {
-        policy.AllowAnyOrigin()
+        policy.WithOrigins(allowedOrigins)
               .AllowAnyMethod()
-              .AllowAnyHeader();
+              .AllowAnyHeader()
+              .AllowCredentials();
     });
+});
+
+// 4. Rate Limiting (Kaba kuvvet ve spam saldırılarına karşı istek sınırlama)
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+    // Kimlik doğrulama endpoint'leri için IP bazlı limit: Dakikada maks 10 istek
+    options.AddPolicy("AuthRateLimit", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown_auth",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 10,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0
+            }));
+
+    // İletişim talebi oluşturma için IP bazlı limit: Dakikada maks 5 istek
+    options.AddPolicy("ContactRequestRateLimit", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown_contact",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 5,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0
+            }));
 });
 
 builder.Services.AddControllers()
@@ -61,7 +95,7 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IContactService, ContactService>();
 builder.Services.AddScoped<IAuditLogService, AuditLogService>();
 
-// 4. Swagger Ayarları
+// 5. Swagger Ayarları
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -87,17 +121,29 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+// Global Exception Handler: Production ortamında iç hata stack trace sızıntısını engeller
+if (!app.Environment.IsDevelopment())
+{
+    app.UseExceptionHandler(exceptionApp =>
+    {
+        exceptionApp.Run(async context =>
+        {
+            context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+            context.Response.ContentType = "application/json";
+            await context.Response.WriteAsync("{\"message\":\"Beklenmeyen bir sunucu hatasi olustu. Lutfen daha sonra tekrar deneyiniz.\"}");
+        });
+    });
+}
+else
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-app.UseCors("AllowAll"); // CORS politikasını etkinleştir
-
-app.UseAuthentication(); // ⚠️ ÖNEMLİ: Kimlik doğrulamayı (Token kontrolünü) etkinleştirir
-app.UseAuthorization();  // Yetkilendirmeyi etkinleştir
+app.UseCors("DefaultCorsPolicy");
+app.UseRateLimiter();
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapControllers();
 

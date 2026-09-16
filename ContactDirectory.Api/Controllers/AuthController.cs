@@ -2,6 +2,7 @@ using ContactDirectory.Api.Interfaces;
 using ContactDirectory.Core.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace ContactDirectory.Api.Controllers;
 
@@ -17,6 +18,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("register")]
+    [EnableRateLimiting("AuthRateLimit")]
     public async Task<IActionResult> Register([FromBody] UserRegisterDto request)
     {
         var result = await _authService.RegisterAsync(request);
@@ -29,6 +31,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("login")]
+    [EnableRateLimiting("AuthRateLimit")]
     public async Task<IActionResult> Login([FromBody] UserLoginDto request)
     {
         var result = await _authService.LoginAsync(request);

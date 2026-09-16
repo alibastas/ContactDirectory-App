@@ -149,6 +149,12 @@ export class ExcelImportDialogComponent {
       return;
     }
 
+    const maxSizeBytes = 5 * 1024 * 1024;
+    if (file.size > maxSizeBytes) {
+      this.errorMessage.set('Dosya boyutu maksimum 5MB olabilir.');
+      return;
+    }
+
     this.errorMessage.set('');
     this.selectedFile.set(file);
     this.isParsing.set(true);

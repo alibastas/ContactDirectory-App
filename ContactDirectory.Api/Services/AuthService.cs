@@ -25,7 +25,18 @@ public class AuthService : IAuthService
 
     public async Task<(bool IsSuccess, string Message)> RegisterAsync(UserRegisterDto request)
     {
-        if (await _context.Users.AnyAsync(u => u.Username == request.Username))
+        var trimmedUsername = request.Username?.Trim() ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(trimmedUsername) || trimmedUsername.Length < 3)
+        {
+            return (false, "Kullanıcı adı en az 3 karakter olmalıdır.");
+        }
+
+        if (string.IsNullOrWhiteSpace(request.Password) || request.Password.Length < 6)
+        {
+            return (false, "Şifre en az 6 karakter olmalıdır.");
+        }
+
+        if (await _context.Users.AnyAsync(u => u.Username.ToLower() == trimmedUsername.ToLower()))
         {
             return (false, "Bu kullanıcı adı zaten alınmış.");
         }
@@ -35,7 +46,7 @@ public class AuthService : IAuthService
 
         var user = new User
         {
-            Username = request.Username,
+            Username = trimmedUsername,
             PasswordHash = passwordHash,
             Role = "User" // Yeni kayıtlar varsayılan olarak "User" rolünde
         };
@@ -99,9 +110,9 @@ public class AuthService : IAuthService
             return (false, "Mevcut şifreniz hatalı.");
         }
 
-        if (string.IsNullOrWhiteSpace(request.NewPassword) || request.NewPassword.Length < 4)
+        if (string.IsNullOrWhiteSpace(request.NewPassword) || request.NewPassword.Length < 6)
         {
-            return (false, "Yeni şifre en az 4 karakter olmalıdır.");
+            return (false, "Yeni şifre en az 6 karakter olmalıdır.");
         }
 
         user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword, 10);

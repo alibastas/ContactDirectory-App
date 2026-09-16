@@ -32,7 +32,8 @@
 - **AES-256 Column Encryption:** Sensitive PII (Personally Identifiable Information) fields are encrypted at rest using industry-standard AES-256.
 - **JWT Authentication & Sliding Expiration:** Access tokens with refresh token rotation and automatic sliding session extension.
 - **Inactivity Session Timeout:** Auto-logout functionality safeguarding unattended sessions.
-- **Rate Limiting:** Built-in IP and client rate limiting protecting endpoints against brute-force and DDoS attacks.
+- **Rate Limiting & Brute-Force Protection:** ASP.NET Core IP-based rate limiting on authentication and contact submission endpoints.
+- **Server-Side Validation & Mass Assignment Guard:** Robust DTO validation rules rejecting invalid data and overposting attacks.
 - **KVKK / GDPR Compliance:** Integrated data protection consents, agreement dialogs, and auditable user confirmation records.
 
 ### 👥 Directory & Contact Management
