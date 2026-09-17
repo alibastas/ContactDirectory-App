@@ -1,22 +1,22 @@
-using ContactDirectory.Core;
+using ContactDirectory.Api.Interfaces;
 using ContactDirectory.Core.DTOs;
-using ContactDirectory.DataAccess;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
-using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace ContactDirectory.Api.Controllers;
 
+[Authorize]
 [Route("api/[controller]")]
 [ApiController]
 public class ContactRequestsController : ControllerBase
 {
-    private readonly AppDbContext _context;
+    private readonly IContactRequestService _contactRequestService;
 
-    public ContactRequestsController(AppDbContext context)
+    public ContactRequestsController(IContactRequestService contactRequestService)
     {
-        _context = context;
+        _contactRequestService = contactRequestService;
     }
 
     [HttpPost]
@@ -28,52 +28,48 @@ public class ContactRequestsController : ControllerBase
             return BadRequest(ModelState);
         }
 
-        var contactRequest = new ContactRequest
-        {
-            CommunicationType = dto.CommunicationType.Trim(),
-            Subject = dto.Subject?.Trim(),
-            FirstName = dto.FirstName.Trim(),
-            LastName = dto.LastName?.Trim(),
-            PhoneNumber = dto.PhoneNumber.Trim(),
-            Email = dto.Email?.Trim().ToLowerInvariant(),
-            Message = dto.Message.Trim(),
-            City = dto.City?.Trim(),
-            Branch = dto.Branch?.Trim(),
-            CreatedAt = DateTime.UtcNow
-        };
+        int userId = GetCurrentUserId();
+        string username = GetCurrentUsername();
 
-        _context.ContactRequests.Add(contactRequest);
-        await _context.SaveChangesAsync();
-
-        return Ok(contactRequest);
+        var result = await _contactRequestService.CreateAsync(dto, userId, username);
+        return Ok(result);
     }
 
-    // Admin-only: list all requests sorted by creation date descending
     [Authorize(Roles = "Admin")]
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
-        var list = await _context.ContactRequests
-            .OrderByDescending(r => r.CreatedAt)
-            .ToListAsync();
-
+        var list = await _contactRequestService.GetAllAsync();
         return Ok(list);
     }
 
-    // Admin-only: delete a contact request
     [Authorize(Roles = "Admin")]
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
-        var request = await _context.ContactRequests.FindAsync(id);
-        if (request == null)
+        int userId = GetCurrentUserId();
+        string username = GetCurrentUsername();
+
+        var success = await _contactRequestService.DeleteAsync(id, userId, username);
+        if (!success)
         {
             return NotFound();
         }
 
-        _context.ContactRequests.Remove(request);
-        await _context.SaveChangesAsync();
-
         return NoContent();
+    }
+
+    // Helper methods to extract user identity from JWT claims
+    private int GetCurrentUserId()
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (userIdClaim == null)
+            throw new UnauthorizedAccessException("Kullanıcı kimliği doğrulanamadı.");
+        return int.Parse(userIdClaim);
+    }
+
+    private string GetCurrentUsername()
+    {
+        return User.FindFirst(ClaimTypes.Name)?.Value ?? "Kullanıcı";
     }
 }
