@@ -61,3 +61,8 @@ appsettings.Development.json
 
 # Documentation & Agent Scratch
 docs/
+
+# User Uploads
+uploads/
+**/uploads/
+

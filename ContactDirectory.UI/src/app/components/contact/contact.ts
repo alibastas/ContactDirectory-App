@@ -22,8 +22,7 @@ import { ContactDetailsComponent } from '../../features/contacts/components/cont
 import { ExcelImportDialogComponent } from '../../features/contacts/components/excel-import/excel-import-dialog';
 import { ExcelService } from '../../services/excel.service';
 import { isPresetAvatar, getPresetSvg } from '../../core/constants/avatars';
-import { ButtonModule } from 'primeng/button';
-import { InputTextModule } from 'primeng/inputtext';
+import { ContactRequestDialogComponent } from '../../shared/components/contact-request-dialog/contact-request-dialog';
 
 @Component({
   selector: 'app-contact',
@@ -31,7 +30,7 @@ import { InputTextModule } from 'primeng/inputtext';
   imports: [
     CommonModule, ToastModule, ConfirmDialogModule,
     TopbarComponent, SidebarComponent, StatCardsComponent, ContactSearchComponent, ContactTableComponent, UserProfileComponent,
-    ContactDetailsComponent, ExcelImportDialogComponent, DialogModule, TextareaModule, ButtonModule, InputTextModule, FormsModule
+    ContactDetailsComponent, ExcelImportDialogComponent, ContactRequestDialogComponent
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -207,217 +206,13 @@ import { InputTextModule } from 'primeng/inputtext';
         (importCompleted)="onImportCompleted($event)">
       </app-excel-import-dialog>
      
-<p-dialog 
-  header="Müşteri İletişim Formu" 
-  [visible]="showContactDialog()" 
-  (visibleChange)="showContactDialog.set($event)"
-  [modal]="true" 
-  [style]="{ width: '520px', maxWidth: '95vw' }" 
-  [draggable]="false" 
-  [resizable]="false">
-
-  <div class="form-grid">
-    <!-- Bağlı Hesap Rozeti -->
-    <div class="user-account-badge-notice">
-      <div class="account-notice-left">
-        <i class="pi pi-verified"></i>
-        <div class="account-notice-text">
-          <span class="account-notice-label">Talebi Gönderen Hesap</span>
-          <span class="account-notice-user">@{{ currentUsername() }}</span>
-        </div>
-      </div>
-      <span class="account-notice-sub">Doğrulanmış Hesap</span>
-    </div>
-
-    <!-- İletişim Türü -->
-    <div class="form-field">
-      <label>İletişim Türü</label>
-      <div class="type-buttons">
-        <button 
-          type="button" 
-          *ngFor="let type of communicationTypes" 
-          [class.active]="contactForm.communicationType === type"
-          (click)="contactForm.communicationType = type"
-          class="type-chip">
-          {{ type }}
-        </button>
-      </div>
-    </div>
-
-    <!-- Ad & Soyad -->
-    <div class="form-row">
-      <div class="form-field">
-        <label>Ad *</label>
-        <input 
-          type="text" 
-          pInputText 
-          [(ngModel)]="contactForm.firstName" 
-          (keypress)="lettersOnly($event)"
-          maxlength="30"
-          placeholder="Adınız" 
-          class="w-full" />
-      </div>
-      <div class="form-field">
-        <label>Soyad</label>
-        <input 
-          type="text" 
-          pInputText 
-          [(ngModel)]="contactForm.lastName" 
-          (keypress)="lettersOnly($event)"
-          maxlength="30"
-          placeholder="Soyadınız" 
-          class="w-full" />
-      </div>
-    </div>
-
-    <!-- Telefon & E-Posta -->
-    <div class="form-row">
-      <div class="form-field">
-        <label>Telefon *</label>
-        <input 
-          type="text" 
-          pInputText 
-          [(ngModel)]="contactForm.phoneNumber" 
-          (keypress)="numbersOnly($event)"
-          maxlength="11" 
-          placeholder="0555 000 00 00" 
-          class="w-full" />
-      </div>
-      <div class="form-field">
-        <label>E-Posta</label>
-        <input 
-          type="email" 
-          pInputText 
-          [(ngModel)]="contactForm.email" 
-          maxlength="60"
-          placeholder="ornek@mail.com" 
-          class="w-full" />
-      </div>
-    </div>
-
-    <!-- Konu -->
-    <div class="form-field">
-      <label>Konu</label>
-      <input 
-        type="text" 
-        pInputText 
-        [(ngModel)]="contactForm.subject" 
-        maxlength="70"
-        placeholder="Talebinizin konusu" 
-        class="w-full" />
-    </div>
-
-    <!-- İl & Şube -->
-    <div class="form-row">
-      <div class="form-field">
-        <label>İl</label>
-        <input 
-          type="text" 
-          pInputText 
-          [(ngModel)]="contactForm.city" 
-          (keypress)="lettersOnly($event)"
-          maxlength="25"
-          placeholder="Örn: Ankara" 
-          class="w-full" />
-      </div>
-      <div class="form-field">
-        <label>Şube</label>
-        <input 
-          type="text" 
-          pInputText 
-          [(ngModel)]="contactForm.branch" 
-          maxlength="35"
-          placeholder="Örn: Kızılay" 
-          class="w-full" />
-      </div>
-    </div>
-
-    <!-- Mesaj (Karakter Sayacı ile) -->
-    <div class="form-field">
-      <div style="display: flex; justify-content: space-between; align-items: center;">
-        <label>Mesajınız *</label>
-        <small style="color: #94a3b8; font-size: 0.75rem;">
-          {{ contactForm.message?.length || 0 }} / 1000
-        </small>
-      </div>
-      <textarea 
-        pTextarea 
-        [(ngModel)]="contactForm.message" 
-        rows="4" 
-        maxlength="1000"
-        placeholder="Mesajınızı detaylı şekilde yazınız..." 
-        class="w-full">
-      </textarea>
-    </div>
-
-    <!-- Alt İşlem Butonları -->
-    <div class="dialog-footer-actions">
-      <p-button 
-        label="Vazgeç" 
-        icon="pi pi-times" 
-        severity="secondary" 
-        [text]="true" 
-        (onClick)="showContactDialog.set(false)">
-      </p-button>
-      <p-button 
-        label="Talebi İlet" 
-        icon="pi pi-send" 
-        severity="primary" 
-        (onClick)="submitContactForm()">
-      </p-button>
-    </div>
-  </div>
-</p-dialog>
+      <app-contact-request-dialog 
+        [visible]="showContactDialog()" 
+        (visibleChange)="showContactDialog.set($event)">
+      </app-contact-request-dialog>
     </div>
   `,
   styles: [`
-    .user-account-badge-notice {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0.65rem 0.85rem;
-      background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(79, 70, 229, 0.04));
-      border: 1px solid rgba(99, 102, 241, 0.2);
-      border-radius: var(--radius-md);
-      margin-bottom: 0.75rem;
-    }
-    .account-notice-left {
-      display: flex;
-      align-items: center;
-      gap: 0.6rem;
-    }
-    .account-notice-left i {
-      color: #6366f1;
-      font-size: 1.1rem;
-    }
-    .account-notice-text {
-      display: flex;
-      flex-direction: column;
-    }
-    .account-notice-label {
-      font-size: 0.6875rem;
-      color: var(--text-secondary);
-      font-weight: 500;
-      text-transform: uppercase;
-      letter-spacing: 0.03em;
-    }
-    .account-notice-user {
-      font-size: 0.875rem;
-      font-weight: 700;
-      color: #4f46e5;
-    }
-    :host-context(html.dark) .account-notice-user {
-      color: #a5b4fc;
-    }
-    .account-notice-sub {
-      font-size: 0.6875rem;
-      font-weight: 600;
-      color: #10b981;
-      background: rgba(16, 185, 129, 0.1);
-      padding: 0.2rem 0.5rem;
-      border-radius: 9999px;
-    }
-
     .dashboard {
       background: var(--surface-ground);
       min-height: 100vh;
@@ -813,54 +608,386 @@ import { InputTextModule } from 'primeng/inputtext';
       margin: 0;
     }
 
-.form-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  padding-top: 8px;
-}
+  /* Two-Column Form Layout (Option A) */
+  .form-two-column-layout {
+    display: grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: 1.5rem;
+    align-items: start;
+    padding-top: 0.5rem;
+  }
 
-.form-row {
-  display: flex;
-  gap: 12px;
-}
+  @media (max-width: 768px) {
+    .form-two-column-layout {
+      grid-template-columns: 1fr;
+      gap: 1.25rem;
+    }
+  }
 
-.form-field {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
+  .form-left-col {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
 
-.form-field label {
-  font-size: 13px;
-  font-weight: 600;
-  color: #475569;
-}
+  .form-right-col {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
 
-.type-buttons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
+  .form-row {
+    display: flex;
+    gap: 12px;
+  }
 
-.type-chip {
-  padding: 6px 14px;
-  border: 1px solid #cbd5e1;
-  border-radius: 20px;
-  background-color: #f8fafc;
-  color: #334155;
-  font-size: 12px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
+  .form-field {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
 
-.type-chip.active {
-  background-color: #3b82f6;
-  border-color: #3b82f6;
-  color: #ffffff;
-  font-weight: 600;
-}
+  .form-field label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #475569;
+  }
+
+  .type-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .type-chip {
+    padding: 6px 14px;
+    border: 1px solid #cbd5e1;
+    border-radius: 20px;
+    background-color: #f8fafc;
+    color: #334155;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .type-chip.active {
+    background-color: #3b82f6;
+    border-color: #3b82f6;
+    color: #ffffff;
+    font-weight: 600;
+  }
+
+  /* Right Column Attachment Section */
+  .attachment-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 2px;
+  }
+
+  .section-title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+  }
+
+  .section-title-wrap i {
+    font-size: 1rem;
+    color: #6366f1;
+  }
+
+  .attachment-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #334155;
+  }
+
+  :host-context(html.dark) .attachment-label {
+    color: #cbd5e1;
+  }
+
+  .attachment-hint {
+    font-size: 0.725rem;
+    color: #94a3b8;
+    font-weight: 500;
+  }
+
+  /* Dropzone styling */
+  .dropzone-box {
+    border: 2px dashed #cbd5e1;
+    border-radius: 12px;
+    background: #f8fafc;
+    padding: 1.5rem 1rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    min-height: 175px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  :host-context(html.dark) .dropzone-box {
+    border-color: #334155;
+    background: rgba(30, 41, 59, 0.4);
+  }
+
+  .dropzone-box:hover {
+    border-color: #6366f1;
+    background: rgba(99, 102, 241, 0.03);
+  }
+
+  .dropzone-box.drag-over {
+    border-color: #4f46e5;
+    background: rgba(99, 102, 241, 0.08);
+    transform: scale(1.01);
+  }
+
+  .dropzone-box.has-file {
+    border-style: solid;
+    border-color: #10b981;
+    background: rgba(16, 185, 129, 0.03);
+    padding: 1rem;
+  }
+
+  :host-context(html.dark) .dropzone-box.has-file {
+    border-color: rgba(16, 185, 129, 0.4);
+    background: rgba(16, 185, 129, 0.05);
+  }
+
+  /* Dropzone Empty State */
+  .dropzone-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.45rem;
+    pointer-events: none;
+  }
+
+  .dropzone-icon-circle {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: rgba(99, 102, 241, 0.1);
+    color: #6366f1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    margin-bottom: 0.25rem;
+    transition: transform 0.2s ease;
+  }
+
+  .dropzone-box:hover .dropzone-icon-circle {
+    transform: translateY(-2px);
+    background: rgba(99, 102, 241, 0.15);
+  }
+
+  .dropzone-main-text {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin: 0;
+  }
+
+  :host-context(html.dark) .dropzone-main-text {
+    color: #e2e8f0;
+  }
+
+  .dropzone-sub-text {
+    font-size: 0.775rem;
+    color: #64748b;
+    margin: 0;
+  }
+
+  .dropzone-sub-text span {
+    color: #4f46e5;
+    font-weight: 600;
+    text-decoration: underline;
+  }
+
+  /* Selected File Card in Dropzone */
+  .dropzone-selected-card {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    text-align: left;
+  }
+
+  .selected-card-top {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    border-radius: 10px;
+    background: #ffffff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  }
+
+  :host-context(html.dark) .selected-card-top {
+    background: #1e293b;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  }
+
+  .selected-file-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
+    background: #f1f5f9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.35rem;
+    flex-shrink: 0;
+  }
+
+  :host-context(html.dark) .selected-file-icon {
+    background: #0f172a;
+  }
+
+  .selected-file-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .selected-file-name {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #1e293b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  :host-context(html.dark) .selected-file-name {
+    color: #f1f5f9;
+  }
+
+  .selected-file-size {
+    font-size: 0.725rem;
+    color: #64748b;
+    margin-top: 1px;
+  }
+
+  .btn-remove-file {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    border: none;
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+
+  .btn-remove-file:hover {
+    background: #ef4444;
+    color: #ffffff;
+  }
+
+  .selected-card-status {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.775rem;
+    font-weight: 600;
+    color: #10b981;
+    padding: 0.35rem 0.6rem;
+    background: rgba(16, 185, 129, 0.1);
+    border-radius: 6px;
+  }
+
+  /* Attachment Guidance Card */
+  .attachment-guidance-card {
+    padding: 0.85rem;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+
+  :host-context(html.dark) .attachment-guidance-card {
+    background: rgba(30, 41, 59, 0.5);
+    border-color: #334155;
+  }
+
+  .guidance-title {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #475569;
+  }
+
+  :host-context(html.dark) .guidance-title {
+    color: #94a3b8;
+  }
+
+  .guidance-title i {
+    color: #6366f1;
+    font-size: 0.85rem;
+  }
+
+  .format-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+
+  .format-chip {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 4px;
+  }
+
+  .badge-img {
+    background: rgba(168, 85, 247, 0.12);
+    color: #9333ea;
+    border: 1px solid rgba(168, 85, 247, 0.2);
+  }
+
+  .badge-pdf {
+    background: rgba(239, 68, 68, 0.12);
+    color: #dc2626;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+  }
+
+  .badge-doc {
+    background: rgba(59, 130, 246, 0.12);
+    color: #2563eb;
+    border: 1px solid rgba(59, 130, 246, 0.2);
+  }
+
+  .badge-xls {
+    background: rgba(16, 185, 129, 0.12);
+    color: #059669;
+    border: 1px solid rgba(16, 185, 129, 0.2);
+  }
+
+  .guidance-note {
+    margin: 0;
+    font-size: 0.7rem;
+    color: #64748b;
+    line-height: 1.4;
+  }
+
+  .pi-file-pdf { color: #ef4444; }
+  .pi-file-word { color: #3b82f6; }
+  .pi-file-excel { color: #10b981; }
+  .pi-image { color: #a855f7; }
 
   /* Contact request modal styles */
   textarea.p-inputtextarea,
@@ -1244,70 +1371,6 @@ export class ContactComponent implements OnInit {
 
   showContactDialog = signal<boolean>(false);
 
-  communicationTypes = ['Şikayet', 'Talep', 'Bilgi', 'Teşekkür', 'Öneri'];
-
-  contactForm: ContactRequest = {
-    communicationType: 'Talep',
-    subject: '',
-    firstName: '',
-    lastName: '',
-    phoneNumber: '',
-    email: '',
-    message: '',
-    city: '',
-    branch: ''
-  };
-
-  submitContactForm() {
-    if (!this.contactForm.firstName || !this.contactForm.phoneNumber || !this.contactForm.message) {
-      this.showError('Lütfen zorunlu alanları (Ad, Telefon, Mesaj) doldurunuz.');
-      return;
-    }
-
-    if (this.contactForm.email) {
-      this.contactForm.email = this.contactForm.email.trim().toLowerCase()
-        .replace(/ı/g, 'i')
-        .replace(/ğ/g, 'g')
-        .replace(/ü/g, 'u')
-        .replace(/ş/g, 's')
-        .replace(/ö/g, 'o')
-        .replace(/ç/g, 'c')
-        .replace('xn--gmal-75a', 'gmail.com')
-        .replace('xn--gmai-nza', 'gmail.com')
-        .replace('gmaıl', 'gmail')
-        .replace('hotmaıl', 'hotmail');
-    }
-
-    this.contactService.createContactRequest(this.contactForm).subscribe({
-      next: () => {
-        this.showSuccess('İletişim talebiniz başarıyla kaydedildi.');
-        this.showContactDialog.set(false);
-        this.contactForm = {
-          communicationType: 'Talep',
-          subject: '',
-          firstName: '',
-          lastName: '',
-          phoneNumber: '',
-          email: '',
-          message: '',
-          city: '',
-          branch: ''
-        };
-      },
-      error: () => {
-        this.showError('Talep iletilirken bir hata oluştu.');
-      }
-    });
-  }
-
-  lettersOnly(event: KeyboardEvent): boolean {
-    const charCode = event.which ? event.which : event.keyCode;
-    if (charCode >= 48 && charCode <= 57) {
-      event.preventDefault();
-      return false;
-    }
-    return true;
-  }
 
   numbersOnly(event: KeyboardEvent): boolean {
     const charCode = event.which ? event.which : event.keyCode;

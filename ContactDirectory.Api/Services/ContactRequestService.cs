@@ -2,6 +2,8 @@ using ContactDirectory.Api.Interfaces;
 using ContactDirectory.Core;
 using ContactDirectory.Core.DTOs;
 using ContactDirectory.DataAccess;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 
 namespace ContactDirectory.Api.Services;
@@ -10,15 +12,60 @@ public class ContactRequestService : IContactRequestService
 {
     private readonly AppDbContext _context;
     private readonly IAuditLogService _auditLogService;
+    private readonly IWebHostEnvironment _env;
 
-    public ContactRequestService(AppDbContext context, IAuditLogService auditLogService)
+    private static readonly string[] AllowedAttachmentExtensions = new[]
+    {
+        ".png", ".jpg", ".jpeg", ".webp", ".pdf", ".doc", ".docx", ".xls", ".xlsx"
+    };
+    private const long MaxAttachmentSizeBytes = 10 * 1024 * 1024; // 10 MB
+
+    public ContactRequestService(AppDbContext context, IAuditLogService auditLogService, IWebHostEnvironment env)
     {
         _context = context;
         _auditLogService = auditLogService;
+        _env = env;
     }
 
-    public async Task<ContactRequest> CreateAsync(CreateContactRequestDto dto, int userId, string username)
+    public async Task<ContactRequest> CreateAsync(CreateContactRequestDto dto, int userId, string username, IFormFile? file = null)
     {
+        string? storedFileName = null;
+        string? originalFileName = null;
+        string? contentType = null;
+        long? fileSize = null;
+
+        if (file != null && file.Length > 0)
+        {
+            if (file.Length > MaxAttachmentSizeBytes)
+            {
+                throw new ArgumentException("Dosya boyutu en fazla 10 MB olabilir.");
+            }
+
+            var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+            if (!AllowedAttachmentExtensions.Contains(extension))
+            {
+                throw new ArgumentException("Desteklenmeyen dosya türü. Yalnızca Resim (PNG, JPG, WEBP), PDF, Word ve Excel dosyaları yüklenebilir.");
+            }
+
+            var uploadsFolder = Path.Combine(_env.ContentRootPath, "uploads", "contact-requests");
+            if (!Directory.Exists(uploadsFolder))
+            {
+                Directory.CreateDirectory(uploadsFolder);
+            }
+
+            storedFileName = $"{Guid.NewGuid():N}{extension}";
+            var destinationPath = Path.Combine(uploadsFolder, storedFileName);
+
+            using (var stream = new FileStream(destinationPath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            originalFileName = Path.GetFileName(file.FileName);
+            contentType = string.IsNullOrWhiteSpace(file.ContentType) ? "application/octet-stream" : file.ContentType;
+            fileSize = file.Length;
+        }
+
         var contactRequest = new ContactRequest
         {
             CommunicationType = dto.CommunicationType.Trim(),
@@ -36,11 +83,16 @@ public class ContactRequestService : IContactRequestService
             IsViewedByAdmin = false,
             IsViewedByUser = true,
             IsDeletedByAdmin = false,
-            IsDeletedByUser = false
+            IsDeletedByUser = false,
+            AttachmentFileName = originalFileName,
+            AttachmentContentType = contentType,
+            AttachmentStoredFileName = storedFileName,
+            AttachmentFileSize = fileSize
         };
 
         _context.ContactRequests.Add(contactRequest);
         await _context.SaveChangesAsync();
+
 
         // Add initial message to the chat history
         string senderDisplayName = !string.IsNullOrWhiteSpace(contactRequest.LastName)
@@ -127,6 +179,38 @@ public class ContactRequestService : IContactRequestService
         await PopulateUsernamesAsync(new List<ContactRequest> { request });
         return request;
     }
+
+    public async Task<(Stream FileStream, string ContentType, string FileName)?> GetAttachmentAsync(int requestId, int userId, string userRole)
+    {
+        var request = await _context.ContactRequests.FindAsync(requestId);
+        if (request == null) return null;
+
+        // Authorization check: User can only access own request, Admin can access all non-deleted by admin
+        if (userRole == "Admin")
+        {
+            if (request.IsDeletedByAdmin) return null;
+        }
+        else
+        {
+            if (request.UserId != userId || request.IsDeletedByUser) return null;
+        }
+
+        if (string.IsNullOrEmpty(request.AttachmentStoredFileName))
+            return null;
+
+        var uploadsFolder = Path.Combine(_env.ContentRootPath, "uploads", "contact-requests");
+        var filePath = Path.Combine(uploadsFolder, request.AttachmentStoredFileName);
+
+        if (!File.Exists(filePath))
+            return null;
+
+        var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+        var contentType = request.AttachmentContentType ?? "application/octet-stream";
+        var fileName = request.AttachmentFileName ?? "attachment";
+
+        return (fileStream, contentType, fileName);
+    }
+
 
     public async Task<ContactRequestMessage> SendMessageAsync(int requestId, string messageText, int userId, string username, string userRole)
     {
@@ -290,6 +374,23 @@ public class ContactRequestService : IContactRequestService
         // Hard delete once deleted by both sides
         if (request.IsDeletedByAdmin && request.IsDeletedByUser)
         {
+            if (!string.IsNullOrEmpty(request.AttachmentStoredFileName))
+            {
+                try
+                {
+                    var uploadsFolder = Path.Combine(_env.ContentRootPath, "uploads", "contact-requests");
+                    var filePath = Path.Combine(uploadsFolder, request.AttachmentStoredFileName);
+                    if (File.Exists(filePath))
+                    {
+                        File.Delete(filePath);
+                    }
+                }
+                catch
+                {
+                    // Ignore file delete errors during database cleanup
+                }
+            }
+
             _context.ContactRequests.Remove(request);
         }
 

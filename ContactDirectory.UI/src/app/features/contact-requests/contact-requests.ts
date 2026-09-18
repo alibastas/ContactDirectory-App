@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { TopbarComponent } from '../../shared/components/topbar/topbar';
 import { SidebarComponent } from '../../shared/components/sidebar/sidebar';
+import { ContactRequestDialogComponent } from '../../shared/components/contact-request-dialog/contact-request-dialog';
 import { ContactService, ContactRequest, ContactRequestMessage } from '../../services/contact.service';
 import { AuthService } from '../../services/auth';
 import { UserProfileComponent, UserProfileData } from '../contacts/components/user-profile/user-profile';
@@ -29,6 +30,7 @@ import { CheckboxModule } from 'primeng/checkbox';
         TopbarComponent,
         SidebarComponent,
         UserProfileComponent,
+        ContactRequestDialogComponent,
         TableModule,
         ButtonModule,
         DialogModule,
@@ -62,18 +64,6 @@ export class ContactRequestsComponent implements OnInit {
 
     // New contact request dialog state
     showContactDialog = signal<boolean>(false);
-    communicationTypes = ['Şikayet', 'Talep', 'Bilgi', 'Teşekkür', 'Öneri'];
-    contactForm: ContactRequest = {
-        communicationType: 'Talep',
-        subject: '',
-        firstName: '',
-        lastName: '',
-        phoneNumber: '',
-        email: '',
-        message: '',
-        city: '',
-        branch: ''
-    };
 
     // Active tab and requests list
     activeTab = signal<'pending' | 'completed'>('pending');
@@ -342,64 +332,52 @@ export class ContactRequestsComponent implements OnInit {
         return this.sanitizer.bypassSecurityTrustHtml(svg);
     }
 
-    submitContactForm(): void {
-        if (!this.contactForm.firstName || !this.contactForm.phoneNumber || !this.contactForm.message) {
-            this.messageService.add({ severity: 'error', summary: 'Hata', detail: 'Lütfen zorunlu alanları (Ad, Telefon, Mesaj) doldurunuz.', life: 3000 });
-            return;
-        }
+    formatFileSize(bytes?: number): string {
+        if (!bytes || bytes === 0) return '0 B';
+        const k = 1024;
+        const sizes = ['B', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+    }
 
-        if (this.contactForm.email) {
-            this.contactForm.email = this.contactForm.email.trim().toLowerCase()
-                .replace(/ı/g, 'i')
-                .replace(/ğ/g, 'g')
-                .replace(/ü/g, 'u')
-                .replace(/ş/g, 's')
-                .replace(/ö/g, 'o')
-                .replace(/ç/g, 'c')
-                .replace('xn--gmal-75a', 'gmail.com')
-                .replace('xn--gmai-nza', 'gmail.com')
-                .replace('gmaıl', 'gmail')
-                .replace('hotmaıl', 'hotmail');
+    getFileIconClass(fileName?: string): string {
+        if (!fileName) return 'pi pi-file';
+        const ext = fileName.split('.').pop()?.toLowerCase() || '';
+        switch (ext) {
+            case 'pdf': return 'pi pi-file-pdf';
+            case 'doc':
+            case 'docx': return 'pi pi-file-word';
+            case 'xls':
+            case 'xlsx': return 'pi pi-file-excel';
+            case 'png':
+            case 'jpg':
+            case 'jpeg':
+            case 'webp': return 'pi pi-image';
+            default: return 'pi pi-file';
         }
+    }
 
-        this.contactService.createContactRequest(this.contactForm).subscribe({
-            next: () => {
-                this.messageService.add({ severity: 'success', summary: 'Başarılı', detail: 'İletişim talebiniz başarıyla iletildi.', life: 3000 });
-                this.showContactDialog.set(false);
-                this.contactForm = {
-                    communicationType: 'Talep',
-                    subject: '',
-                    firstName: '',
-                    lastName: '',
-                    phoneNumber: '',
-                    email: '',
-                    message: '',
-                    city: '',
-                    branch: ''
-                };
-                this.loadRequests();
+    downloadAttachment(requestId?: number, fileName?: string): void {
+        if (!requestId) return;
+        this.contactService.downloadAttachment(requestId).subscribe({
+            next: (blob) => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = fileName || 'ek-dosya';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
             },
             error: () => {
-                this.messageService.add({ severity: 'error', summary: 'Hata', detail: 'Talep iletilirken bir hata oluştu.', life: 3000 });
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'Hata',
+                    detail: 'Dosya indirilemedi veya yetkiniz yok.',
+                    life: 3000
+                });
             }
         });
-    }
-
-    lettersOnly(event: KeyboardEvent): boolean {
-        const charCode = event.which ? event.which : event.keyCode;
-        if (charCode >= 48 && charCode <= 57) {
-            event.preventDefault();
-            return false;
-        }
-        return true;
-    }
-
-    numbersOnly(event: KeyboardEvent): boolean {
-        const charCode = event.which ? event.which : event.keyCode;
-        if (charCode > 31 && (charCode < 48 || charCode > 57)) {
-            event.preventDefault();
-            return false;
-        }
-        return true;
     }
 }

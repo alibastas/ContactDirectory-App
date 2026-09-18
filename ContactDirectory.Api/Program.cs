@@ -165,10 +165,14 @@ using (var scope = app.Services.CreateScope())
     {
         var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
-        // Ensure soft delete columns exist and normalize corrupted email domain typos
+        // Ensure soft delete columns, attachment columns exist and normalize corrupted email domain typos
         await context.Database.ExecuteSqlRawAsync("""
             ALTER TABLE "ContactRequests" ADD COLUMN IF NOT EXISTS "IsDeletedByAdmin" boolean NOT NULL DEFAULT false;
             ALTER TABLE "ContactRequests" ADD COLUMN IF NOT EXISTS "IsDeletedByUser" boolean NOT NULL DEFAULT false;
+            ALTER TABLE "ContactRequests" ADD COLUMN IF NOT EXISTS "AttachmentFileName" varchar(255);
+            ALTER TABLE "ContactRequests" ADD COLUMN IF NOT EXISTS "AttachmentContentType" varchar(100);
+            ALTER TABLE "ContactRequests" ADD COLUMN IF NOT EXISTS "AttachmentStoredFileName" varchar(255);
+            ALTER TABLE "ContactRequests" ADD COLUMN IF NOT EXISTS "AttachmentFileSize" bigint;
             UPDATE "ContactRequests" SET "Email" = REPLACE("Email", 'xn--gmal-75a', 'gmail.com') WHERE "Email" LIKE '%xn--gmal-75a%';
             UPDATE "ContactRequests" SET "Email" = REPLACE("Email", 'gmaıl', 'gmail') WHERE "Email" LIKE '%gmaıl%';
         """);

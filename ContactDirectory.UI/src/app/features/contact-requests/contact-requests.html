@@ -121,7 +121,10 @@
                             </td>
                             <td>
                                 <div class="subject-cell">
-                                    <span class="subject-title">{{ req.subject || 'Konu Belirtilmemiş' }}</span>
+                                    <div class="subject-title-row">
+                                        <span class="subject-title">{{ req.subject || 'Konu Belirtilmemiş' }}</span>
+                                        <i *ngIf="req.attachmentFileName" class="pi pi-paperclip attachment-cell-badge" [title]="'Ek Dosya: ' + req.attachmentFileName"></i>
+                                    </div>
                                     <span class="message-preview">{{ req.message }}</span>
                                 </div>
                             </td>
@@ -253,6 +256,23 @@
             </div>
         </ng-template>
 
+        <!-- Attached File Banner (If Any) -->
+        <div *ngIf="selectedRequest()?.attachmentFileName" class="chat-attachment-banner">
+            <div class="chat-attachment-left">
+                <div class="chat-attachment-icon-box">
+                    <i [class]="getFileIconClass(selectedRequest()?.attachmentFileName)"></i>
+                </div>
+                <div class="chat-attachment-info">
+                    <span class="chat-attachment-name" [title]="selectedRequest()?.attachmentFileName">{{ selectedRequest()?.attachmentFileName }}</span>
+                    <span class="chat-attachment-size">{{ formatFileSize(selectedRequest()?.attachmentFileSize) }} • Eklenmiş Belge</span>
+                </div>
+            </div>
+            <button type="button" class="btn-attachment-download" (click)="downloadAttachment(selectedRequest()?.id, selectedRequest()?.attachmentFileName)" title="Dosyayı İndir">
+                <i class="pi pi-download"></i>
+                <span>İndir</span>
+            </button>
+        </div>
+
         <!-- Messages Stream -->
         <div class="chat-messages-container" *ngIf="selectedRequest() as req">
             <div *ngFor="let m of req.messages" class="chat-bubble-wrapper"
@@ -302,166 +322,10 @@
         (saveProfile)="saveProfileDetails($event)">
     </app-user-profile>
 
-    <!-- New Contact Request Dialog -->
-    <p-dialog 
-        header="Müşteri İletişim Formu" 
+    <!-- Shared Contact Request Dialog -->
+    <app-contact-request-dialog 
         [visible]="showContactDialog()" 
         (visibleChange)="showContactDialog.set($event)"
-        [modal]="true" 
-        [style]="{ width: '520px', maxWidth: '95vw' }" 
-        [draggable]="false" 
-        [resizable]="false">
-
-        <div class="form-grid">
-            <!-- Linked Account Notice -->
-            <div class="user-account-badge-notice">
-                <div class="account-notice-left">
-                    <i class="pi pi-verified"></i>
-                    <div class="account-notice-text">
-                        <span class="account-notice-label">Talebi Gönderen Hesap</span>
-                        <span class="account-notice-user">@{{ currentUsername() }}</span>
-                    </div>
-                </div>
-                <span class="account-notice-sub">Doğrulanmış Hesap</span>
-            </div>
-
-            <!-- Communication Type -->
-            <div class="form-field">
-                <label>İletişim Türü</label>
-                <div class="type-buttons">
-                    <button 
-                        type="button" 
-                        *ngFor="let type of communicationTypes" 
-                        [class.active]="contactForm.communicationType === type"
-                        (click)="contactForm.communicationType = type"
-                        class="type-chip">
-                        {{ type }}
-                    </button>
-                </div>
-            </div>
-
-            <!-- First Name & Last Name -->
-            <div class="form-row">
-                <div class="form-field">
-                    <label>Ad *</label>
-                    <input 
-                        type="text" 
-                        pInputText 
-                        [(ngModel)]="contactForm.firstName" 
-                        (keypress)="lettersOnly($event)"
-                        maxlength="30"
-                        placeholder="Adınız" 
-                        class="w-full" />
-                </div>
-                <div class="form-field">
-                    <label>Soyad</label>
-                    <input 
-                        type="text" 
-                        pInputText 
-                        [(ngModel)]="contactForm.lastName" 
-                        (keypress)="lettersOnly($event)"
-                        maxlength="30"
-                        placeholder="Soyadınız" 
-                        class="w-full" />
-                </div>
-            </div>
-
-            <!-- Phone & Email -->
-            <div class="form-row">
-                <div class="form-field">
-                    <label>Telefon *</label>
-                    <input 
-                        type="text" 
-                        pInputText 
-                        [(ngModel)]="contactForm.phoneNumber" 
-                        (keypress)="numbersOnly($event)"
-                        maxlength="11" 
-                        placeholder="0555 000 00 00" 
-                        class="w-full" />
-                </div>
-                <div class="form-field">
-                    <label>E-Posta</label>
-                    <input 
-                        type="email" 
-                        pInputText 
-                        [(ngModel)]="contactForm.email" 
-                        maxlength="60"
-                        placeholder="ornek@mail.com" 
-                        class="w-full" />
-                </div>
-            </div>
-
-            <!-- Subject -->
-            <div class="form-field">
-                <label>Konu</label>
-                <input 
-                    type="text" 
-                    pInputText 
-                    [(ngModel)]="contactForm.subject" 
-                    maxlength="70"
-                    placeholder="Talebinizin konusu" 
-                    class="w-full" />
-            </div>
-
-            <!-- City & Branch -->
-            <div class="form-row">
-                <div class="form-field">
-                    <label>İl</label>
-                    <input 
-                        type="text" 
-                        pInputText 
-                        [(ngModel)]="contactForm.city" 
-                        (keypress)="lettersOnly($event)"
-                        maxlength="25"
-                        placeholder="Örn: Ankara" 
-                        class="w-full" />
-                </div>
-                <div class="form-field">
-                    <label>Şube</label>
-                    <input 
-                        type="text" 
-                        pInputText 
-                        [(ngModel)]="contactForm.branch" 
-                        maxlength="35"
-                        placeholder="Örn: Kızılay" 
-                        class="w-full" />
-                </div>
-            </div>
-
-            <!-- Message with Character Counter -->
-            <div class="form-field">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <label>Mesajınız *</label>
-                    <small style="color: #94a3b8; font-size: 0.75rem;">
-                        {{ contactForm.message?.length || 0 }} / 1000
-                    </small>
-                </div>
-                <textarea 
-                    pTextarea 
-                    [(ngModel)]="contactForm.message" 
-                    rows="4" 
-                    maxlength="1000"
-                    placeholder="Mesajınızı detaylı şekilde yazınız..." 
-                    class="w-full">
-                </textarea>
-            </div>
-
-            <!-- Dialog Actions -->
-            <div class="dialog-footer-actions">
-                <p-button 
-                    label="Vazgeç" 
-                    icon="pi pi-times" 
-                    severity="secondary" 
-                    [text]="true" 
-                    (onClick)="showContactDialog.set(false)">
-                </p-button>
-                <p-button 
-                    label="Talebi İlet" 
-                    icon="pi pi-send" 
-                    severity="primary" 
-                    (onClick)="submitContactForm()">
-                </p-button>
-            </div>
-        </div>
-    </p-dialog>
+        (submitted)="loadRequests()">
+    </app-contact-request-dialog>
 </div>

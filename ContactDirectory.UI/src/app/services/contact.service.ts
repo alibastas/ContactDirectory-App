@@ -42,6 +42,9 @@ export interface ContactRequest {
   status?: string;
   isViewedByAdmin?: boolean;
   isViewedByUser?: boolean;
+  attachmentFileName?: string;
+  attachmentContentType?: string;
+  attachmentFileSize?: number;
   messages?: ContactRequestMessage[];
 }
 export interface ContactRequestMessage {
@@ -150,8 +153,13 @@ export class ContactService {
   }
 
   // --- Contact Requests & Support Chat APIs ---
-  createContactRequest(request: ContactRequest): Observable<ContactRequest> {
+  createContactRequest(request: ContactRequest | FormData): Observable<ContactRequest> {
     return this.http.post<ContactRequest>('http://localhost:5099/api/ContactRequests', request);
+  }
+
+  /** Download attached file for a contact request with authorization */
+  downloadAttachment(id: number): Observable<Blob> {
+    return this.http.get(`http://localhost:5099/api/ContactRequests/${id}/attachment`, { responseType: 'blob' });
   }
 
   /** Admin: fetch all contact requests, optionally filtered by status */

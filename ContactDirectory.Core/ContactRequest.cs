@@ -58,7 +58,14 @@ public class ContactRequest
     public bool IsDeletedByUser { get; set; } = false;
     public List<ContactRequestMessage> Messages { get; set; } = new();
 
+    [MaxLength(255)]
+    public string? AttachmentFileName { get; set; }
 
+    [MaxLength(100)]
+    public string? AttachmentContentType { get; set; }
 
+    [MaxLength(255)]
+    public string? AttachmentStoredFileName { get; set; }
 
+    public long? AttachmentFileSize { get; set; }
 }
