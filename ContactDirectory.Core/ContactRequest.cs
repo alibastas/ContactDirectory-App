@@ -1,5 +1,7 @@
-﻿using System;
+using System;
 using System.ComponentModel.DataAnnotations;
+
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ContactDirectory.Core;
 
@@ -43,4 +45,20 @@ public class ContactRequest
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public int UserId { get; set; }
+
+    [NotMapped]
+    public string? Username { get; set; }
+
+
+    [MaxLength(20)]
+    public string Status { get; set; } = "Pending";
+    public bool IsViewedByAdmin { get; set; } = false;
+    public bool IsViewedByUser { get; set; } = true;
+    public bool IsDeletedByAdmin { get; set; } = false;
+    public bool IsDeletedByUser { get; set; } = false;
+    public List<ContactRequestMessage> Messages { get; set; } = new();
+
+
+
+
 }

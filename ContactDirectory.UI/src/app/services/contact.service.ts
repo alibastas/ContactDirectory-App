@@ -37,9 +37,22 @@ export interface ContactRequest {
   city: string;
   branch: string;
   userId?: number;
+  username?: string;
+  createdAt?: string;
+  status?: string;
+  isViewedByAdmin?: boolean;
+  isViewedByUser?: boolean;
+  messages?: ContactRequestMessage[];
+}
+export interface ContactRequestMessage {
+  id?: number;
+  contactRequestId: number;
+  senderUserId: number;
+  senderName: string;
+  senderRole: 'Admin' | 'User';
+  message: string;
   createdAt?: string;
 }
-
 
 @Injectable({
   providedIn: 'root'
@@ -47,13 +60,13 @@ export interface ContactRequest {
 export class ContactService {
   private readonly apiUrl = `${environment.apiUrl}/Contacts`;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   /** Kullanıcının filtreli ve sayfalı kişilerini getir */
   getContacts(
-    searchTerm: string = '', 
-    isFavoriteOnly: boolean = false, 
-    page: number = 1, 
+    searchTerm: string = '',
+    isFavoriteOnly: boolean = false,
+    page: number = 1,
     pageSize: number = 10,
     advanced?: AdvancedSearchParams
   ): Observable<PagedResult<Contact>> {
@@ -113,7 +126,7 @@ export class ContactService {
 
   /** Filtreye uyan tüm kişileri dışa aktarım için getir (Sayfalamasız) */
   getExportContacts(
-    searchTerm: string = '', 
+    searchTerm: string = '',
     isFavoriteOnly: boolean = false,
     advanced?: AdvancedSearchParams
   ): Observable<Contact[]> {
@@ -136,19 +149,60 @@ export class ContactService {
     return this.http.get<Contact[]>(`${this.apiUrl}/export-data`, { params });
   }
 
-createContactRequest(request: ContactRequest): Observable<ContactRequest> {
-  return this.http.post<ContactRequest>('http://localhost:5099/api/ContactRequests', request);
-}
-getContactRequests(): Observable<ContactRequest[]> {
-  return this.http.get<ContactRequest[]>('http://localhost:5099/api/ContactRequests');
-}
+  // --- Contact Requests & Support Chat APIs ---
+  createContactRequest(request: ContactRequest): Observable<ContactRequest> {
+    return this.http.post<ContactRequest>('http://localhost:5099/api/ContactRequests', request);
+  }
 
-deleteContactRequest(id: number): Observable<any> {
-  return this.http.delete(`http://localhost:5099/api/ContactRequests/${id}`);
-}
+  /** Admin: fetch all contact requests, optionally filtered by status */
+  getContactRequests(status?: string): Observable<ContactRequest[]> {
+    const url = status
+      ? `http://localhost:5099/api/ContactRequests?status=${status}`
+      : 'http://localhost:5099/api/ContactRequests';
+    return this.http.get<ContactRequest[]>(url);
+  }
+
+  /** User: fetch requests belonging to current user */
+  getMyContactRequests(status?: string): Observable<ContactRequest[]> {
+    const url = status
+      ? `http://localhost:5099/api/ContactRequests/my?status=${status}`
+      : 'http://localhost:5099/api/ContactRequests/my';
+    return this.http.get<ContactRequest[]>(url);
+  }
+
+  /** Fetch request details and associated chat message history */
+  getContactRequestById(id: number): Observable<ContactRequest> {
+    return this.http.get<ContactRequest>(`http://localhost:5099/api/ContactRequests/${id}`);
+  }
+
+  /** Send a new message to a request thread */
+  sendRequestMessage(id: number, message: string): Observable<ContactRequestMessage> {
+    return this.http.post<ContactRequestMessage>(`http://localhost:5099/api/ContactRequests/${id}/messages`, { message });
+  }
+
+  /** Admin: update request status ('Pending' | 'Completed') */
+  updateRequestStatus(id: number, status: string): Observable<void> {
+    return this.http.put<void>(`http://localhost:5099/api/ContactRequests/${id}/status`, { status });
+  }
+
+  /** Fetch unviewed requests for notification popup dialog */
+  getUnviewedRequests(): Observable<ContactRequest[]> {
+    return this.http.get<ContactRequest[]>('http://localhost:5099/api/ContactRequests/unviewed');
+  }
+
+  /** Mark request as viewed by current user role */
+  markRequestAsViewed(id: number): Observable<void> {
+    return this.http.put<void>(`http://localhost:5099/api/ContactRequests/${id}/mark-viewed`, {});
+  }
+
+  /** Soft-delete contact request for the current user's side */
+  deleteContactRequest(id: number): Observable<any> {
+    return this.http.delete(`http://localhost:5099/api/ContactRequests/${id}`);
+  }
+
   /** Excel veya CSV toplu veri ile kişileri aktar (Yinelenen kayıt stratejisi ile) */
   bulkAddContacts(
-    contacts: Partial<Contact>[], 
+    contacts: Partial<Contact>[],
     duplicateStrategy: 'skip' | 'update' | 'allow' = 'skip'
   ): Observable<BulkImportResult> {
     const payload = {

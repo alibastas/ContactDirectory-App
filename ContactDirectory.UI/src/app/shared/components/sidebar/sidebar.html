@@ -1,0 +1,30 @@
+<aside class="sidebar" [class.collapsed]="isCollapsed()">
+    <!-- Üst Kısım: Açıp Kapatma (Toggle) Butonu -->
+    <div class="sidebar-header">
+        <button type="button" class="btn-toggle" (click)="toggleCollapse()"
+            [title]="isCollapsed() ? 'Menüyü Genişlet' : 'Menüyü Daralt'">
+            <i class="pi" [ngClass]="isCollapsed() ? 'pi-angle-double-right' : 'pi-angle-double-left'"></i>
+        </button>
+    </div>
+
+    <!-- Menü Öğeleri -->
+    <nav class="sidebar-nav">
+        <!-- 1. Kişi Rehberi -->
+        <a routerLink="/contacts" routerLinkActive="active" class="nav-item"
+            [title]="isCollapsed() ? 'Kişi Rehberi' : ''">
+            <div class="nav-icon-wrap">
+                <i class="pi pi-users"></i>
+            </div>
+            <span class="nav-label" *ngIf="!isCollapsed()">Kişi Rehberi</span>
+        </a>
+
+        <!-- 2. İletişim Talepleri -->
+        <a routerLink="/contact-requests" routerLinkActive="active" class="nav-item"
+            [title]="isCollapsed() ? 'İletişim Talepleri' : ''">
+            <div class="nav-icon-wrap">
+                <i class="pi pi-inbox"></i>
+            </div>
+            <span class="nav-label" *ngIf="!isCollapsed()">İletişim Talepleri</span>
+        </a>
+    </nav>
+</aside>

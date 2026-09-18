@@ -55,12 +55,22 @@ builder.Services.AddCors(options =>
     });
 });
 
-// 4. Rate Limiting (Kaba kuvvet ve spam saldırılarına karşı istek sınırlama)
+// 4. Rate Limiting (Brute-force and DDoS protection)
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
 
-    // Kimlik doğrulama endpoint'leri için IP bazlı limit: Dakikada maks 10 istek
+    options.OnRejected = async (context, cancellationToken) =>
+    {
+        context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+        context.HttpContext.Response.ContentType = "application/json; charset=utf-8";
+        await context.HttpContext.Response.WriteAsJsonAsync(new
+        {
+            message = "Too many requests. Please wait a minute and try again."
+        }, cancellationToken);
+    };
+
+    // IP-based limit for authentication endpoints (10 requests/min)
     options.AddPolicy("AuthRateLimit", httpContext =>
         RateLimitPartition.GetFixedWindowLimiter(
             partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown_auth",
@@ -71,13 +81,13 @@ builder.Services.AddRateLimiter(options =>
                 QueueLimit = 0
             }));
 
-    // İletişim talebi oluşturma için IP bazlı limit: Dakikada maks 5 istek
+    // IP-based limit for contact request submissions (15 requests/min)
     options.AddPolicy("ContactRequestRateLimit", httpContext =>
         RateLimitPartition.GetFixedWindowLimiter(
             partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown_contact",
             factory: _ => new FixedWindowRateLimiterOptions
             {
-                PermitLimit = 5,
+                PermitLimit = 15,
                 Window = TimeSpan.FromMinutes(1),
                 QueueLimit = 0
             }));
@@ -148,12 +158,21 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-// Mevcut açık metin kişileri otomatik olarak AES-256 ile şifrele (Geriye Dönük Veri Göçü)
+// Database initialization and retro-encryption migration
 using (var scope = app.Services.CreateScope())
 {
     try
     {
         var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+        // Ensure soft delete columns exist and normalize corrupted email domain typos
+        await context.Database.ExecuteSqlRawAsync("""
+            ALTER TABLE "ContactRequests" ADD COLUMN IF NOT EXISTS "IsDeletedByAdmin" boolean NOT NULL DEFAULT false;
+            ALTER TABLE "ContactRequests" ADD COLUMN IF NOT EXISTS "IsDeletedByUser" boolean NOT NULL DEFAULT false;
+            UPDATE "ContactRequests" SET "Email" = REPLACE("Email", 'xn--gmal-75a', 'gmail.com') WHERE "Email" LIKE '%xn--gmal-75a%';
+            UPDATE "ContactRequests" SET "Email" = REPLACE("Email", 'gmaıl', 'gmail') WHERE "Email" LIKE '%gmaıl%';
+        """);
+
         var unencryptedIds = await context.Database
             .SqlQueryRaw<int>("""
                 SELECT "Id" FROM "Contacts" 
@@ -178,12 +197,12 @@ using (var scope = app.Services.CreateScope())
             }
 
             await context.SaveChangesAsync();
-            Console.WriteLine($"[Şifreleme] {unencryptedContacts.Count} adet eski açık metin kişi başarıyla AES-256 ile şifrelendi.");
+            Console.WriteLine($"[Encryption] Successfully encrypted {unencryptedContacts.Count} legacy plaintext records.");
         }
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"[Şifreleme Göçü Uyarısı] {ex.Message}");
+        Console.WriteLine($"[Encryption Migration Warning] {ex.Message}");
     }
 }
 

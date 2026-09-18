@@ -16,6 +16,8 @@ public class AppDbContext : DbContext
     public DbSet<AuditLog> AuditLogs { get; set; }
 
     public DbSet<ContactRequest> ContactRequests { get; set; }
+    public DbSet<ContactRequestMessage> ContactRequestMessages { get; set; }
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

@@ -1,7 +1,7 @@
 import { Component, OnInit, ChangeDetectionStrategy, signal, computed, HostListener, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import { ContactService, AdvancedSearchParams,ContactRequest} from '../../services/contact.service';
+import { ContactService, AdvancedSearchParams, ContactRequest } from '../../services/contact.service';
 import { Contact } from '../../core/models/contact.model';
 import { Router } from '@angular/router';
 import { finalize } from 'rxjs';
@@ -13,6 +13,7 @@ import { DialogModule } from 'primeng/dialog';
 import { TextareaModule } from 'primeng/textarea';
 import { FormsModule } from '@angular/forms';
 import { TopbarComponent } from '../../shared/components/topbar/topbar';
+import { SidebarComponent } from '../../shared/components/sidebar/sidebar';
 import { StatCardsComponent } from '../../features/contacts/components/stat-cards/stat-cards';
 import { ContactSearchComponent } from '../../features/contacts/components/contact-search/contact-search';
 import { ContactTableComponent } from '../../features/contacts/components/contact-table/contact-table';
@@ -29,8 +30,8 @@ import { InputTextModule } from 'primeng/inputtext';
   standalone: true,
   imports: [
     CommonModule, ToastModule, ConfirmDialogModule,
-    TopbarComponent, StatCardsComponent, ContactSearchComponent, ContactTableComponent, UserProfileComponent,
-    ContactDetailsComponent, ExcelImportDialogComponent,DialogModule,TextareaModule,ButtonModule, InputTextModule,FormsModule
+    TopbarComponent, SidebarComponent, StatCardsComponent, ContactSearchComponent, ContactTableComponent, UserProfileComponent,
+    ContactDetailsComponent, ExcelImportDialogComponent, DialogModule, TextareaModule, ButtonModule, InputTextModule, FormsModule
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -123,13 +124,14 @@ import { InputTextModule } from 'primeng/inputtext';
 
 
           <p-button
-  label="İletişim Talebi" 
-  icon="pi pi-envelope" 
-  severity="info" 
-  [outlined]="true" 
-  size="small" 
-  (onClick)="showContactDialog.set(true)">
-</p-button>
+            *ngIf="!isAdmin()"
+            label="İletişim Talebi" 
+            icon="pi pi-envelope" 
+            severity="info" 
+            [outlined]="true" 
+            size="small" 
+            (onClick)="showContactDialog.set(true)">
+          </p-button>
 
 
 
@@ -139,6 +141,9 @@ import { InputTextModule } from 'primeng/inputtext';
           </button>
         </ng-container>
       </app-topbar>
+
+        <div class="layout-container">
+        <app-sidebar></app-sidebar>
 
       <main class="main-content">
         <app-stat-cards 
@@ -212,6 +217,18 @@ import { InputTextModule } from 'primeng/inputtext';
   [resizable]="false">
 
   <div class="form-grid">
+    <!-- Bağlı Hesap Rozeti -->
+    <div class="user-account-badge-notice">
+      <div class="account-notice-left">
+        <i class="pi pi-verified"></i>
+        <div class="account-notice-text">
+          <span class="account-notice-label">Talebi Gönderen Hesap</span>
+          <span class="account-notice-user">@{{ currentUsername() }}</span>
+        </div>
+      </div>
+      <span class="account-notice-sub">Doğrulanmış Hesap</span>
+    </div>
+
     <!-- İletişim Türü -->
     <div class="form-field">
       <label>İletişim Türü</label>
@@ -354,6 +371,53 @@ import { InputTextModule } from 'primeng/inputtext';
     </div>
   `,
   styles: [`
+    .user-account-badge-notice {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.65rem 0.85rem;
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(79, 70, 229, 0.04));
+      border: 1px solid rgba(99, 102, 241, 0.2);
+      border-radius: var(--radius-md);
+      margin-bottom: 0.75rem;
+    }
+    .account-notice-left {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    .account-notice-left i {
+      color: #6366f1;
+      font-size: 1.1rem;
+    }
+    .account-notice-text {
+      display: flex;
+      flex-direction: column;
+    }
+    .account-notice-label {
+      font-size: 0.6875rem;
+      color: var(--text-secondary);
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    .account-notice-user {
+      font-size: 0.875rem;
+      font-weight: 700;
+      color: #4f46e5;
+    }
+    :host-context(html.dark) .account-notice-user {
+      color: #a5b4fc;
+    }
+    .account-notice-sub {
+      font-size: 0.6875rem;
+      font-weight: 600;
+      color: #10b981;
+      background: rgba(16, 185, 129, 0.1);
+      padding: 0.2rem 0.5rem;
+      border-radius: 9999px;
+    }
+
     .dashboard {
       background: var(--surface-ground);
       min-height: 100vh;
@@ -678,7 +742,15 @@ import { InputTextModule } from 'primeng/inputtext';
       display: block;
     }
 
+        .layout-container {
+      display: flex;
+      min-height: calc(100vh - 80px);
+      width: 100%;
+    }
+
     .main-content {
+      flex: 1;
+      min-width: 0;
       padding: 2rem;
       max-width: 1400px;
       margin: 0 auto;
@@ -687,6 +759,8 @@ import { InputTextModule } from 'primeng/inputtext';
       gap: 2rem;
       animation: scaleIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
+
+
 
     @keyframes scaleIn {
       from { opacity: 0; transform: scale(0.98); }
@@ -814,7 +888,7 @@ export class ContactComponent implements OnInit {
   showImportDialogVisible = signal(false);
   currentImportType = signal<'excel' | 'csv'>('excel');
   profileData = signal<UserProfileData>({ username: '', email: '', country: '', avatarUrl: '' });
-  
+
   private sanitizer = inject(DomSanitizer);
 
   isPreset(url?: string): boolean {
@@ -843,6 +917,7 @@ export class ContactComponent implements OnInit {
   advancedSearchParams = signal<AdvancedSearchParams>({});
 
   isAdmin = computed(() => this.authService.isAdmin());
+  currentUsername = computed(() => this.authService.getUsername());
 
   hasActiveFilter = computed(() => {
     const adv = this.advancedSearchParams();
@@ -869,7 +944,7 @@ export class ContactComponent implements OnInit {
     private router: Router,
     private messageService: MessageService,
     private confirmationService: ConfirmationService
-  ) {}
+  ) { }
 
   @HostListener('document:click')
   onDocumentClick() {
@@ -899,7 +974,7 @@ export class ContactComponent implements OnInit {
           }
         }
       },
-      error: () => {}
+      error: () => { }
     });
 
     const savedFormat = localStorage.getItem('contact_name_format') as 'first-last' | 'last-first';
@@ -1037,7 +1112,7 @@ export class ContactComponent implements OnInit {
 
     const contact = this.contacts().find(c => c.id === id);
     if (!contact) return;
-    
+
     this.togglingFavorites.add(id);
 
     const updatedContact = { ...contact, isFavorite: !contact.isFavorite };
@@ -1061,7 +1136,7 @@ export class ContactComponent implements OnInit {
     this.currentPage.set(1);
     this.loadContacts();
   }
-  
+
   setSearchQuery(query: string) {
     this.searchQuery.set(query);
     this.currentPage.set(1);
@@ -1157,7 +1232,7 @@ export class ContactComponent implements OnInit {
     }
 
     this.authService.updateAvatar(data.avatarUrl || null).subscribe({
-      next: () => {},
+      next: () => { },
       error: (err) => console.error('Avatar sunucuya kaydedilemedi', err)
     });
 
@@ -1187,6 +1262,20 @@ export class ContactComponent implements OnInit {
     if (!this.contactForm.firstName || !this.contactForm.phoneNumber || !this.contactForm.message) {
       this.showError('Lütfen zorunlu alanları (Ad, Telefon, Mesaj) doldurunuz.');
       return;
+    }
+
+    if (this.contactForm.email) {
+      this.contactForm.email = this.contactForm.email.trim().toLowerCase()
+        .replace(/ı/g, 'i')
+        .replace(/ğ/g, 'g')
+        .replace(/ü/g, 'u')
+        .replace(/ş/g, 's')
+        .replace(/ö/g, 'o')
+        .replace(/ç/g, 'c')
+        .replace('xn--gmal-75a', 'gmail.com')
+        .replace('xn--gmai-nza', 'gmail.com')
+        .replace('gmaıl', 'gmail')
+        .replace('hotmaıl', 'hotmail');
     }
 
     this.contactService.createContactRequest(this.contactForm).subscribe({

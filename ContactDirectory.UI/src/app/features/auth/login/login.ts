@@ -60,6 +60,16 @@ export class LoginComponent implements OnInit, OnDestroy {
     this.errorMessage.set('');
     this.successMessage.set('');
 
+    if (!this.username().trim()) {
+      this.errorMessage.set('Lütfen kullanıcı adınızı giriniz.');
+      return;
+    }
+
+    if (!this.password()) {
+      this.errorMessage.set('Lütfen şifrenizi giriniz.');
+      return;
+    }
+
     if (this.isRegisterMode() && !this.kvkkAccepted()) {
       this.errorMessage.set('Lütfen kayıt olmadan önce KVKK Aydınlatma Metni\'ni inceleyip onaylayınız.');
       return;
@@ -82,7 +92,7 @@ export class LoginComponent implements OnInit, OnDestroy {
           this.isSubmitting.set(false);
         },
         error: (err) => {
-          this.errorMessage.set(err.error || 'Kayıt olurken bir hata oluştu.');
+          this.errorMessage.set(this.extractErrorMessage(err, 'Kayıt olurken bir hata oluştu.'));
           this.isSubmitting.set(false);
         }
       });
@@ -93,7 +103,7 @@ export class LoginComponent implements OnInit, OnDestroy {
           this.router.navigate(['/contacts']);
         },
         error: (err) => {
-          this.errorMessage.set(err.error || 'Kullanıcı adı veya şifre hatalı.');
+          this.errorMessage.set(this.extractErrorMessage(err, 'Kullanıcı adı veya şifre hatalı.'));
           this.isSubmitting.set(false);
         }
       });
@@ -151,5 +161,55 @@ export class LoginComponent implements OnInit, OnDestroy {
 
   closeKvkkModal() {
     this.showKvkkModal.set(false);
+  }
+
+  private extractErrorMessage(err: any, fallback: string): string {
+    if (!err) return fallback;
+
+    if (err.status === 429) {
+      return 'Çok fazla istek yapıldı. Güvenliğiniz için lütfen 1 dakika bekleyip tekrar deneyiniz.';
+    }
+
+    if (err.status === 401) {
+      return 'Kullanıcı adı veya şifre hatalı.';
+    }
+
+    if (err.status === 0 || err.status === 503) {
+      return 'Sunucuya bağlanılamadı. Lütfen sunucunun açık olduğundan veya internet bağlantınızdan emin olun.';
+    }
+
+    if (err.status === 500) {
+      return 'Sunucu kaynaklı bir hata oluştu. Lütfen daha sonra tekrar deneyiniz.';
+    }
+
+    if (typeof err === 'string' && !err.includes('Http failure')) return err;
+    if (typeof err.error === 'string' && !err.error.includes('Http failure') && !err.error.includes('<!DOCTYPE')) {
+      return err.error;
+    }
+    if (err.error?.message && typeof err.error.message === 'string') return err.error.message;
+
+    if (err.error?.errors && typeof err.error.errors === 'object') {
+      const messages = Object.values(err.error.errors).flat().filter(m => typeof m === 'string') as string[];
+      if (messages.length > 0) {
+        const joined = messages.join(' ');
+        if (joined.includes('Password') && (joined.includes('required') || joined.includes('zorunlu'))) {
+          return 'Lütfen şifrenizi giriniz.';
+        }
+        if (joined.includes('Username') && (joined.includes('required') || joined.includes('zorunlu'))) {
+          return 'Lütfen kullanıcı adınızı giriniz.';
+        }
+        return joined;
+      }
+    }
+
+    if (err.error?.title && typeof err.error.title === 'string' && !err.error.title.includes('validation errors')) {
+      return err.error.title;
+    }
+
+    if (err.message && typeof err.message === 'string' && !err.message.includes('Http failure')) {
+      return err.message;
+    }
+
+    return fallback;
   }
 }

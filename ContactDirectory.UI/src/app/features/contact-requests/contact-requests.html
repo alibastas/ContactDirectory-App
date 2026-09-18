@@ -1,0 +1,467 @@
+<div class="dashboard">
+    <p-toast position="top-right"></p-toast>
+    <p-confirmdialog></p-confirmdialog>
+
+    <!-- Topbar -->
+    <app-topbar title="İletişim Talepleri & Destek" [badgeText]="isAdmin() ? 'Yönetici Paneli' : 'Kullanıcı Destek'">
+        <ng-container actions>
+            <!-- Admin Panel Link (Admin Only) -->
+            <button *ngIf="isAdmin()" class="btn-admin-panel" (click)="goToAdmin()" title="Yönetici Paneli">
+                <i class="pi pi-shield"></i>
+                <span>Yönetici Paneli</span>
+            </button>
+
+            <!-- Settings -->
+            <button class="btn-settings" (click)="goToSettings()" title="Ayarlar">
+                <i class="pi pi-cog"></i>
+            </button>
+
+            <!-- User Profile & Avatar -->
+            <div class="user-avatar" title="Kullanıcı Profili" (click)="openProfile()" style="cursor: pointer;">
+                <div *ngIf="isPreset(profileData().avatarUrl)" class="topbar-avatar-svg" [innerHTML]="getPresetSvg(profileData().avatarUrl)"></div>
+                <img *ngIf="profileData().avatarUrl && !isPreset(profileData().avatarUrl)" [src]="profileData().avatarUrl" alt="Avatar" class="topbar-avatar-img">
+                <i *ngIf="!profileData().avatarUrl" class="pi pi-user"></i>
+            </div>
+
+            <!-- New Contact Request Button (Regular Users Only) -->
+            <p-button
+                *ngIf="!isAdmin()"
+                label="İletişim Talebi" 
+                icon="pi pi-envelope" 
+                severity="info" 
+                [outlined]="true" 
+                size="small" 
+                (onClick)="showContactDialog.set(true)">
+            </p-button>
+
+            <!-- Logout -->
+            <button class="btn-logout" (click)="logout()" title="Çıkış Yap">
+                <i class="pi pi-power-off"></i>
+            </button>
+        </ng-container>
+    </app-topbar>
+
+    <div class="layout-container">
+        <app-sidebar></app-sidebar>
+
+        <main class="main-content">
+            <!-- Segmented Status Tabs -->
+            <div class="admin-tab-bar">
+                <button type="button" class="admin-tab-btn" [class.active]="activeTab() === 'pending'"
+                    (click)="setActiveTab('pending')">
+                    <i class="pi pi-clock"></i>
+                    <span>Bekleyen Talepler</span>
+                    <span class="tab-badge">{{ pendingCount() }}</span>
+                </button>
+
+                <button type="button" class="admin-tab-btn" [class.active]="activeTab() === 'completed'"
+                    (click)="setActiveTab('completed')">
+                    <i class="pi pi-check-circle"></i>
+                    <span>Karşılanan Talepler</span>
+                    <span class="tab-badge">{{ completedCount() }}</span>
+                </button>
+            </div>
+
+            <!-- Main Content Card -->
+            <div class="content-card">
+                <div class="card-header">
+                    <div class="header-left">
+                        <div class="header-icon">
+                            <i [class]="activeTab() === 'pending' ? 'pi pi-inbox' : 'pi pi-verified'"></i>
+                        </div>
+                        <div>
+                            <h2>{{ activeTab() === 'pending' ? 'Bekleyen Talepler' : 'Karşılanan Talepler' }}</h2>
+                            <p>{{ isAdmin() ? 'Gelen müşteri talepleri ve mesajlaşma geçmişi' : 'İlettiğiniz talepler ve
+                                yöneticiden gelen yanıtlar' }}</p>
+                        </div>
+                    </div>
+                    <div class="header-actions">
+                        <button class="btn-refresh" (click)="loadRequests()">
+                            <i class="pi pi-refresh" [class.pi-spin]="isLoading()"></i>
+                            <span>Yenile</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Requests Table -->
+
+                <p-table [value]="filteredRequests()" [loading]="isLoading()" [paginator]="true" [rows]="10"
+                    styleClass="p-datatable-sm modern-requests-table">
+
+
+                    <ng-template #header>
+                        <tr>
+                            <th style="width: 70px;">ID</th>
+                            <th>Gönderen</th>
+                            <th>Tür</th>
+                            <th>Konu & Mesaj</th>
+                            <th>Tarih</th>
+                            <th>Durum</th>
+                            <th style="text-align: center; width: 140px;">İşlemler</th>
+                        </tr>
+                    </ng-template>
+
+                    <ng-template #body let-req>
+                        <tr [class.unread-row]="isAdmin() ? !req.isViewedByAdmin : !req.isViewedByUser">
+                            <td>
+                                <span class="req-id">#{{ req.id }}</span>
+                            </td>
+                            <td>
+                                <div class="sender-info">
+                                    <div class="sender-title-row">
+                                        <span class="sender-name">{{ req.firstName }} {{ req.lastName }}</span>
+                                        <span class="sender-username-badge" *ngIf="req.username" title="Sistem Hesabı">@{{ req.username }}</span>
+                                    </div>
+                                    <span class="sender-meta">{{ req.email || req.phoneNumber }}</span>
+                                </div>
+                            </td>
+                            <td>
+                                <p-tag [value]="req.CommunicationType || req.communicationType || 'Talep'"
+                                    [severity]="getBadgeSeverity(req.CommunicationType || req.communicationType)"></p-tag>
+                            </td>
+                            <td>
+                                <div class="subject-cell">
+                                    <span class="subject-title">{{ req.subject || 'Konu Belirtilmemiş' }}</span>
+                                    <span class="message-preview">{{ req.message }}</span>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="date-text">{{ req.createdAt | date:'dd.MM.yyyy HH:mm' }}</span>
+                            </td>
+                            <td>
+                                <span class="status-pill" [class.completed]="req.status === 'Completed'">
+                                    <i [class]="req.status === 'Completed' ? 'pi pi-check' : 'pi pi-clock'"></i>
+                                    {{ req.status === 'Completed' ? 'Karşılandı' : 'Beklemede' }}
+                                </span>
+                            </td>
+                            <td style="text-align: center;">
+                                <div class="action-buttons">
+                                    <button type="button" class="action-icon-btn chat-btn" title="Sohbeti Aç"
+                                        (click)="openChat(req)">
+                                        <i class="pi pi-comments"></i>
+                                    </button>
+
+                                    <button *ngIf="isAdmin()" type="button" class="action-icon-btn status-btn"
+                                        [class.completed]="req.status === 'Completed'"
+                                        [title]="req.status === 'Completed' ? 'Beklemeye Al' : 'Karşılandı Yap'"
+                                        (click)="toggleStatus(req)">
+                                        <i [class]="req.status === 'Completed' ? 'pi pi-undo' : 'pi pi-check'"></i>
+                                    </button>
+
+                                    <button type="button" class="action-icon-btn delete-btn" title="Talebi Sil"
+                                        (click)="confirmDelete($event, req)">
+                                        <i class="pi pi-trash"></i>
+                                    </button>
+                                </div>
+
+                            </td>
+                        </tr>
+                    </ng-template>
+
+                    <ng-template #emptymessage>
+                        <tr>
+                            <td colspan="7">
+                                <div class="placeholder-box">
+                                    <i class="pi pi-inbox placeholder-icon"></i>
+                                    <h3>Bu sekmede herhangi bir talep bulunmuyor</h3>
+                                    <p>{{ activeTab() === 'pending' ? 'Tüm bekleyen talepler çözüldü veya henüz talep
+                                        oluşturulmadı.' : 'Henüz karşılanan bir talep yok.' }}</p>
+                                </div>
+                            </td>
+                        </tr>
+                    </ng-template>
+                </p-table>
+            </div>
+        </main>
+    </div>
+
+    <!-- 1. Unviewed Requests Preview Dialog -->
+    <p-dialog [(visible)]="showUnviewedDialog" [modal]="true" [closable]="true" (onHide)="closeUnviewedDialog()"
+        appendTo="body" [draggable]="false" [resizable]="false" [dismissableMask]="true"
+        [style]="{ width: '640px', maxWidth: '95vw' }" styleClass="preview-dialog"
+        header="🔔 Görüntülenmemiş İletişim Talepleri">
+
+        <div class="preview-dialog-content">
+            <p class="preview-intro">
+                {{ isAdmin() ? 'İncelemenizi bekleyen yeni iletişim talepleri:' : 'Yöneticiden yanıt gelen güncel
+                talepleriniz:' }}
+            </p>
+
+            <div class="preview-list">
+                <div *ngFor="let item of unviewedRequests()" class="preview-card"
+                    (click)="closeUnviewedDialog(); openChat(item)">
+                    <div class="preview-card-header">
+                        <span class="preview-tag">{{ item.communicationType }}</span>
+                        <span class="preview-date">{{ item.createdAt | date:'dd.MM.yyyy HH:mm' }}</span>
+                    </div>
+                    <h4 class="preview-subject">{{ item.subject || 'Konu Belirtilmemiş' }}</h4>
+                    <p class="preview-msg">{{ item.message }}</p>
+                    <div class="preview-footer">
+                        <span>
+                            {{ item.firstName }} {{ item.lastName }}
+                            <strong class="preview-user-handle" *ngIf="item.username">(@{{ item.username }})</strong>
+                        </span>
+                        <span class="view-prompt">Sohbeti Aç <i class="pi pi-arrow-right"></i></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <ng-template #footer>
+            <button type="button" class="btn-close-modal" (click)="closeUnviewedDialog()">
+                Anladım, Listeye Geç
+            </button>
+        </ng-template>
+    </p-dialog>
+
+    <!-- 2. Chat Modal Dialog -->
+    <p-dialog [(visible)]="showChatDialog" [modal]="true" [closable]="true"
+        appendTo="body" [draggable]="false" [resizable]="false" [dismissableMask]="true"
+        [style]="{ width: '720px', maxWidth: '95vw' }" styleClass="chat-dialog">
+
+        <ng-template #header>
+            <div class="chat-header-info" *ngIf="selectedRequest() as req">
+                <div class="chat-header-titles">
+                    <h3>#{{ req.id }} — {{ req.subject || 'İletişim Talebi' }}</h3>
+                    <div class="chat-header-meta">
+                        <span class="header-sender-name">{{ req.firstName }} {{ req.lastName }}</span>
+                        <span class="header-account-badge" *ngIf="req.username" title="Doğrulanmış Kullanıcı Hesabı">
+                            <i class="pi pi-at"></i>{{ req.username }}
+                        </span>
+                        <span *ngIf="req.email">•</span>
+                        <span *ngIf="req.email">{{ req.email }}</span> •
+                        <span class="status-pill mini" [class.completed]="req.status === 'Completed'">
+                            {{ req.status === 'Completed' ? 'Karşılandı' : 'Beklemede' }}
+                        </span>
+                    </div>
+                </div>
+                <div class="chat-header-actions">
+                    <div *ngIf="isAdmin()" class="chat-status-checkbox-wrapper" [class.completed]="req.status === 'Completed'"
+                        (click)="toggleStatus(req)" title="Talep Durumunu Değiştir">
+                        <p-checkbox [binary]="true" [ngModel]="req.status === 'Completed'"
+                            inputId="statusCheck"></p-checkbox>
+                        <label for="statusCheck" class="status-checkbox-label">
+                            Talep Karşılandı
+                        </label>
+                    </div>
+
+                    <button type="button" class="action-icon-btn delete-btn" title="Talebi Sil"
+                        (click)="confirmDelete($event, req)">
+                        <i class="pi pi-trash"></i>
+                    </button>
+                </div>
+            </div>
+        </ng-template>
+
+        <!-- Messages Stream -->
+        <div class="chat-messages-container" *ngIf="selectedRequest() as req">
+            <div *ngFor="let m of req.messages" class="chat-bubble-wrapper"
+                [class.mine]="isMyMessage(m)">
+
+                <div class="chat-bubble">
+                    <div class="bubble-header">
+                        <span class="bubble-sender">
+                            {{ m.senderRole === 'Admin' ? m.senderName : (req.username ? '@' + req.username : m.senderName) }}
+                        </span>
+                        <span *ngIf="m.senderRole === 'Admin'" class="bubble-role-badge admin-role">
+                            <i class="pi pi-shield"></i>
+                            <span>Yönetici</span>
+                        </span>
+                    </div>
+                    <div class="bubble-text">{{ m.message }}</div>
+                    <div class="bubble-time">{{ m.createdAt | date:'dd.MM.yyyy HH:mm' }}</div>
+                </div>
+            </div>
+
+            <div *ngIf="!req.messages || req.messages.length === 0" class="no-messages">
+                <i class="pi pi-comments"></i>
+                <p>Henüz mesaj geçmişi bulunmuyor.</p>
+            </div>
+        </div>
+
+        <!-- Message Input Footer -->
+        <ng-template #footer>
+            <div class="chat-input-row">
+                <input type="text" pInputText placeholder="Yanıtınızı buraya yazın..." [(ngModel)]="newMessageText"
+                    (keydown.enter)="sendMessage()" [disabled]="isSendingMessage()" class="chat-input" />
+
+                <button type="button" (click)="sendMessage()"
+                    [disabled]="!newMessageText.trim() || isSendingMessage()" class="btn-send-message">
+                    <i class="pi pi-send"></i>
+                    <span>Gönder</span>
+                </button>
+            </div>
+        </ng-template>
+    </p-dialog>
+
+    <!-- User Profile Dialog -->
+    <app-user-profile
+        [visible]="showProfileDialog()"
+        [profileData]="profileData()"
+        (visibleChange)="showProfileDialog.set($event)"
+        (saveProfile)="saveProfileDetails($event)">
+    </app-user-profile>
+
+    <!-- New Contact Request Dialog -->
+    <p-dialog 
+        header="Müşteri İletişim Formu" 
+        [visible]="showContactDialog()" 
+        (visibleChange)="showContactDialog.set($event)"
+        [modal]="true" 
+        [style]="{ width: '520px', maxWidth: '95vw' }" 
+        [draggable]="false" 
+        [resizable]="false">
+
+        <div class="form-grid">
+            <!-- Linked Account Notice -->
+            <div class="user-account-badge-notice">
+                <div class="account-notice-left">
+                    <i class="pi pi-verified"></i>
+                    <div class="account-notice-text">
+                        <span class="account-notice-label">Talebi Gönderen Hesap</span>
+                        <span class="account-notice-user">@{{ currentUsername() }}</span>
+                    </div>
+                </div>
+                <span class="account-notice-sub">Doğrulanmış Hesap</span>
+            </div>
+
+            <!-- Communication Type -->
+            <div class="form-field">
+                <label>İletişim Türü</label>
+                <div class="type-buttons">
+                    <button 
+                        type="button" 
+                        *ngFor="let type of communicationTypes" 
+                        [class.active]="contactForm.communicationType === type"
+                        (click)="contactForm.communicationType = type"
+                        class="type-chip">
+                        {{ type }}
+                    </button>
+                </div>
+            </div>
+
+            <!-- First Name & Last Name -->
+            <div class="form-row">
+                <div class="form-field">
+                    <label>Ad *</label>
+                    <input 
+                        type="text" 
+                        pInputText 
+                        [(ngModel)]="contactForm.firstName" 
+                        (keypress)="lettersOnly($event)"
+                        maxlength="30"
+                        placeholder="Adınız" 
+                        class="w-full" />
+                </div>
+                <div class="form-field">
+                    <label>Soyad</label>
+                    <input 
+                        type="text" 
+                        pInputText 
+                        [(ngModel)]="contactForm.lastName" 
+                        (keypress)="lettersOnly($event)"
+                        maxlength="30"
+                        placeholder="Soyadınız" 
+                        class="w-full" />
+                </div>
+            </div>
+
+            <!-- Phone & Email -->
+            <div class="form-row">
+                <div class="form-field">
+                    <label>Telefon *</label>
+                    <input 
+                        type="text" 
+                        pInputText 
+                        [(ngModel)]="contactForm.phoneNumber" 
+                        (keypress)="numbersOnly($event)"
+                        maxlength="11" 
+                        placeholder="0555 000 00 00" 
+                        class="w-full" />
+                </div>
+                <div class="form-field">
+                    <label>E-Posta</label>
+                    <input 
+                        type="email" 
+                        pInputText 
+                        [(ngModel)]="contactForm.email" 
+                        maxlength="60"
+                        placeholder="ornek@mail.com" 
+                        class="w-full" />
+                </div>
+            </div>
+
+            <!-- Subject -->
+            <div class="form-field">
+                <label>Konu</label>
+                <input 
+                    type="text" 
+                    pInputText 
+                    [(ngModel)]="contactForm.subject" 
+                    maxlength="70"
+                    placeholder="Talebinizin konusu" 
+                    class="w-full" />
+            </div>
+
+            <!-- City & Branch -->
+            <div class="form-row">
+                <div class="form-field">
+                    <label>İl</label>
+                    <input 
+                        type="text" 
+                        pInputText 
+                        [(ngModel)]="contactForm.city" 
+                        (keypress)="lettersOnly($event)"
+                        maxlength="25"
+                        placeholder="Örn: Ankara" 
+                        class="w-full" />
+                </div>
+                <div class="form-field">
+                    <label>Şube</label>
+                    <input 
+                        type="text" 
+                        pInputText 
+                        [(ngModel)]="contactForm.branch" 
+                        maxlength="35"
+                        placeholder="Örn: Kızılay" 
+                        class="w-full" />
+                </div>
+            </div>
+
+            <!-- Message with Character Counter -->
+            <div class="form-field">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <label>Mesajınız *</label>
+                    <small style="color: #94a3b8; font-size: 0.75rem;">
+                        {{ contactForm.message?.length || 0 }} / 1000
+                    </small>
+                </div>
+                <textarea 
+                    pTextarea 
+                    [(ngModel)]="contactForm.message" 
+                    rows="4" 
+                    maxlength="1000"
+                    placeholder="Mesajınızı detaylı şekilde yazınız..." 
+                    class="w-full">
+                </textarea>
+            </div>
+
+            <!-- Dialog Actions -->
+            <div class="dialog-footer-actions">
+                <p-button 
+                    label="Vazgeç" 
+                    icon="pi pi-times" 
+                    severity="secondary" 
+                    [text]="true" 
+                    (onClick)="showContactDialog.set(false)">
+                </p-button>
+                <p-button 
+                    label="Talebi İlet" 
+                    icon="pi pi-send" 
+                    severity="primary" 
+                    (onClick)="submitContactForm()">
+                </p-button>
+            </div>
+        </div>
+    </p-dialog>
+</div>
