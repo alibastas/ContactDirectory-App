@@ -11,6 +11,7 @@ import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DialogModule } from 'primeng/dialog';
 import { TextareaModule } from 'primeng/textarea';
+import { ButtonModule } from 'primeng/button';
 import { FormsModule } from '@angular/forms';
 import { TopbarComponent } from '../../shared/components/topbar/topbar';
 import { SidebarComponent } from '../../shared/components/sidebar/sidebar';
@@ -28,7 +29,7 @@ import { ContactRequestDialogComponent } from '../../shared/components/contact-r
   selector: 'app-contact',
   standalone: true,
   imports: [
-    CommonModule, ToastModule, ConfirmDialogModule,
+    CommonModule, ToastModule, ConfirmDialogModule, ButtonModule,
     TopbarComponent, SidebarComponent, StatCardsComponent, ContactSearchComponent, ContactTableComponent, UserProfileComponent,
     ContactDetailsComponent, ExcelImportDialogComponent, ContactRequestDialogComponent
   ],
